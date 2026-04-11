@@ -178,8 +178,13 @@ public class DinoEggEntity extends Entity implements GeoEntity {
         return true;
     }
 
+    private static final int CURRENT_DATA_VERSION = 1;
+
     @Override
     protected void readCustomDataFromNbt(NbtCompound nbt) {
+        int savedVersion = nbt.getInt("FA2DataVersion", 0);
+        // if (savedVersion < 2) { ... }
+
         setDinoId(nbt.getString("DinoId").orElse(""));
         setHatchProgress(nbt.getInt("HatchProgress", 0));
         nbt.getString("OwnerUUID").ifPresent(s -> {
@@ -189,6 +194,7 @@ public class DinoEggEntity extends Entity implements GeoEntity {
 
     @Override
     protected void writeCustomDataToNbt(NbtCompound nbt) {
+        nbt.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
         nbt.putString("DinoId", getDinoId());
         nbt.putInt("HatchProgress", getHatchProgress());
         if (ownerUuid != null) {
