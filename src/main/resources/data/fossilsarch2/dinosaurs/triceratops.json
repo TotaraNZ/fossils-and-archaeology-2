@@ -1,0 +1,20 @@
+{
+    "id": "triceratops",
+    "display_name": "Triceratops",
+    "health": 40.0,
+    "speed": 0.22,
+    "attack_damage": 6.0,
+    "width": 2.0,
+    "height": 1.8,
+    "baby_scale": 0.4,
+    "diet": "HERBIVORE",
+    "max_age": 12,
+    "grow_time": 12000,
+    "hatch_time": 3000,
+    "meat_nutrition": 4,
+    "meat_saturation": 0.4,
+    "cooked_meat_nutrition": 9,
+    "cooked_meat_saturation": 0.9,
+    "meat_drop_count": 4,
+    "special_animations": ["look"]
+}

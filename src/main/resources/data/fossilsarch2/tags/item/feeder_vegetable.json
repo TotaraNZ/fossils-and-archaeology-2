@@ -1,0 +1,20 @@
+{
+    "replace": false,
+    "values": [
+        "minecraft:wheat",
+        "minecraft:apple",
+        "minecraft:carrot",
+        "minecraft:golden_carrot",
+        "minecraft:potato",
+        "minecraft:baked_potato",
+        "minecraft:beetroot",
+        "minecraft:melon_slice",
+        "minecraft:bread",
+        "minecraft:sweet_berries",
+        "minecraft:glow_berries",
+        "minecraft:dried_kelp",
+        "minecraft:pumpkin_pie",
+        "minecraft:cookie",
+        "fossilsarch2:fern_seed"
+    ]
+}

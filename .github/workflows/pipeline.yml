@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version from conventional commits
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: false
+          release_branches: main
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fossils-and-archaeology-2
+          path: build/libs/fossils-and-archaeology-2-*.jar
+
+      - name: Create GitHub release
+        if: steps.tag.outputs.new_tag
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: build/libs/fossils-and-archaeology-2-*.jar
+          tag: ${{ steps.tag.outputs.new_tag }}
+          name: Fossils & Archaeology 2 ${{ steps.tag.outputs.new_version }}
+          body: ${{ steps.tag.outputs.changelog }}

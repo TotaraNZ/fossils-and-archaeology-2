@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+bin/
+
+# Runtime
+run/
+
+# Data generation output
+src/main/generated/
+.apt_generated/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

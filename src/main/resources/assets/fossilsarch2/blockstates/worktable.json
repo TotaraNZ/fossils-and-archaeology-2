@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "facing=north,lit=false": { "model": "fossilsarch2:block/worktable" },
+        "facing=south,lit=false": { "model": "fossilsarch2:block/worktable", "y": 180 },
+        "facing=east,lit=false": { "model": "fossilsarch2:block/worktable", "y": 90 },
+        "facing=west,lit=false": { "model": "fossilsarch2:block/worktable", "y": 270 },
+        "facing=north,lit=true": { "model": "fossilsarch2:block/worktable_active" },
+        "facing=south,lit=true": { "model": "fossilsarch2:block/worktable_active", "y": 180 },
+        "facing=east,lit=true": { "model": "fossilsarch2:block/worktable_active", "y": 90 },
+        "facing=west,lit=true": { "model": "fossilsarch2:block/worktable_active", "y": 270 }
+    }
+}

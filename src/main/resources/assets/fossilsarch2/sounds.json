@@ -1,0 +1,40 @@
+{
+    "triceratops.ambient": {
+        "sounds": [
+            {"name": "fossilsarch2:triceratops_living1"},
+            {"name": "fossilsarch2:triceratops_living2"},
+            {"name": "fossilsarch2:triceratops_living3"}
+        ]
+    },
+    "triceratops.hurt": {
+        "sounds": [
+            {"name": "fossilsarch2:triceratops_hurt"}
+        ]
+    },
+    "triceratops.death": {
+        "sounds": [
+            {"name": "fossilsarch2:triceratops_death"}
+        ]
+    },
+    "tyrannosaurus.ambient": {
+        "sounds": [
+            {"name": "fossilsarch2:tyrannosaurus_living1"},
+            {"name": "fossilsarch2:tyrannosaurus_living2"},
+            {"name": "fossilsarch2:tyrannosaurus_living3"},
+            {"name": "fossilsarch2:tyrannosaurus_scream1"},
+            {"name": "fossilsarch2:tyrannosaurus_scream2"},
+            {"name": "fossilsarch2:tyrannosaurus_scream3"}
+        ]
+    },
+    "tyrannosaurus.hurt": {
+        "sounds": [
+            {"name": "fossilsarch2:tyrannosaurus_hurt"}
+        ]
+    },
+    "tyrannosaurus.death": {
+        "sounds": [
+            {"name": "fossilsarch2:tyrannosaurus_death1"},
+            {"name": "fossilsarch2:tyrannosaurus_death2"}
+        ]
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "parent": "minecraft:block/cube",
+    "textures": {
+        "up": "fossilsarch2:block/worktable_top",
+        "down": "fossilsarch2:block/worktable_bottom",
+        "north": "fossilsarch2:block/worktable_front",
+        "south": "fossilsarch2:block/worktable_side",
+        "east": "fossilsarch2:block/worktable_side",
+        "west": "fossilsarch2:block/worktable_side",
+        "particle": "fossilsarch2:block/worktable_side"
+    }
+}

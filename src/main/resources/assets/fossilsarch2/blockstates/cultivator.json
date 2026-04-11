@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "lit=false": { "model": "fossilsarch2:block/cultivator" },
+        "lit=true": { "model": "fossilsarch2:block/cultivator_active" }
+    }
+}

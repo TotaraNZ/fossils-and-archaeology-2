@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:block/cross",
+    "textures": {
+        "cross": "fossilsarch2:block/fern_stage2"
+    }
+}

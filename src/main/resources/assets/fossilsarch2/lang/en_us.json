@@ -1,0 +1,61 @@
+{
+    "block.fossilsarch2.fossil": "Fossil",
+    "block.fossilsarch2.analyser": "Analyser",
+    "block.fossilsarch2.cultivator": "Cultivator",
+    "block.fossilsarch2.feeder": "Feeder",
+    "block.fossilsarch2.fern": "Fern",
+    "block.fossilsarch2.worktable": "Worktable",
+
+    "item.fossilsarch2.bio_fossil": "Bio-Fossil",
+    "item.fossilsarch2.relic": "Relic",
+    "item.fossilsarch2.scarab_gem": "Scarab Gem",
+    "item.fossilsarch2.dinopedia": "Dinopedia",
+    "item.fossilsarch2.fern_seed": "Fern Seed",
+    "item.fossilsarch2.ancient_sword": "Ancient Sword",
+    "item.fossilsarch2.ancient_helmet": "Ancient Helmet",
+    "item.fossilsarch2.broken_sword": "Broken Sword",
+    "item.fossilsarch2.broken_helmet": "Broken Helmet",
+    "item.fossilsarch2.scarab_sword": "Scarab Sword",
+    "item.fossilsarch2.scarab_axe": "Scarab Axe",
+    "item.fossilsarch2.scarab_pickaxe": "Scarab Pickaxe",
+    "item.fossilsarch2.scarab_shovel": "Scarab Shovel",
+    "item.fossilsarch2.scarab_hoe": "Scarab Hoe",
+
+    "item.fossilsarch2.triceratops_dna": "Triceratops DNA",
+    "item.fossilsarch2.triceratops_egg": "Triceratops Egg",
+    "item.fossilsarch2.triceratops_meat": "Raw Triceratops Meat",
+    "item.fossilsarch2.triceratops_cooked_meat": "Cooked Triceratops Meat",
+
+    "item.fossilsarch2.tyrannosaurus_dna": "Tyrannosaurus DNA",
+    "item.fossilsarch2.tyrannosaurus_egg": "Tyrannosaurus Egg",
+    "item.fossilsarch2.tyrannosaurus_meat": "Raw Tyrannosaurus Meat",
+    "item.fossilsarch2.tyrannosaurus_cooked_meat": "Cooked Tyrannosaurus Meat",
+
+    "entity.fossilsarch2.triceratops": "Triceratops",
+    "entity.fossilsarch2.tyrannosaurus": "Tyrannosaurus",
+    "entity.fossilsarch2.dino_egg": "Dinosaur Egg",
+
+    "itemGroup.fossilsarch2": "Fossils & Archaeology 2",
+
+    "tag.item.fossilsarch2.scarab_gems": "Scarab Gems",
+    "tag.item.fossilsarch2.feeder_vegetable": "Feeder Vegetables",
+    "tag.item.fossilsarch2.cultivator_fuel": "Cultivator Fuel",
+
+    "gui.fossilsarch2.dinopedia": "Dinopedia",
+    "gui.fossilsarch2.dinopedia.owner": "Owner:",
+    "gui.fossilsarch2.dinopedia.diet": "Diet: %s",
+    "gui.fossilsarch2.dinopedia.growth": "Growth: %s%%",
+    "gui.fossilsarch2.dinopedia.age.day": "Day",
+    "gui.fossilsarch2.dinopedia.age.days": "Days",
+    "gui.fossilsarch2.dinopedia.status": "Status",
+    "gui.fossilsarch2.dinopedia.progress": "Progress",
+    "gui.fossilsarch2.dinopedia.warm": "Warm",
+    "gui.fossilsarch2.dinopedia.cold": "Cold",
+
+    "subtitles.fossilsarch2.triceratops.ambient": "Triceratops calls",
+    "subtitles.fossilsarch2.triceratops.hurt": "Triceratops hurts",
+    "subtitles.fossilsarch2.triceratops.death": "Triceratops dies",
+    "subtitles.fossilsarch2.tyrannosaurus.ambient": "Tyrannosaurus roars",
+    "subtitles.fossilsarch2.tyrannosaurus.hurt": "Tyrannosaurus hurts",
+    "subtitles.fossilsarch2.tyrannosaurus.death": "Tyrannosaurus dies"
+}

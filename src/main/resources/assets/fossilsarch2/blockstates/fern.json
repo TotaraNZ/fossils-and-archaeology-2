@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "age=0": { "model": "fossilsarch2:block/fern_stage0" },
+        "age=1": { "model": "fossilsarch2:block/fern_stage1" },
+        "age=2": { "model": "fossilsarch2:block/fern_stage2" },
+        "age=3": { "model": "fossilsarch2:block/fern_stage3" }
+    }
+}

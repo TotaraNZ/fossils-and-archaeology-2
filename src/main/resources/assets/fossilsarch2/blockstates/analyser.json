@@ -1,0 +1,42 @@
+{
+    "variants": {
+        "facing=north,lit=false": {
+            "model": "fossilsarch2:block/analyser",
+            "uvlock": true
+        },
+        "facing=south,lit=false": {
+            "model": "fossilsarch2:block/analyser",
+            "y": 180,
+            "uvlock": true
+        },
+        "facing=west,lit=false": {
+            "model": "fossilsarch2:block/analyser",
+            "y": 270,
+            "uvlock": true
+        },
+        "facing=east,lit=false": {
+            "model": "fossilsarch2:block/analyser",
+            "y": 90,
+            "uvlock": true
+        },
+        "facing=north,lit=true": {
+            "model": "fossilsarch2:block/analyser_active",
+            "uvlock": true
+        },
+        "facing=south,lit=true": {
+            "model": "fossilsarch2:block/analyser_active",
+            "y": 180,
+            "uvlock": true
+        },
+        "facing=west,lit=true": {
+            "model": "fossilsarch2:block/analyser_active",
+            "y": 270,
+            "uvlock": true
+        },
+        "facing=east,lit=true": {
+            "model": "fossilsarch2:block/analyser_active",
+            "y": 90,
+            "uvlock": true
+        }
+    }
+}

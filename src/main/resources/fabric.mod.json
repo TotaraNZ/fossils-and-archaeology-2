@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "fossilsarch2",
+	"version": "${version}",
+	"name": "Fossils & Archaeology 2",
+	"description": "A faithful re-creation of the original prehistoric Minecraft experience. Discover fossils, extract DNA, cultivate eggs, and raise dinosaurs.",
+	"authors": [
+		"TotaraNZ"
+	],
+	"contact": {
+		"sources": "https://github.com/TotaraNZ/fossils-and-archaeology-2"
+	},
+	"license": "MIT",
+	"icon": "assets/fossilsarch2/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"mod.fossilsarch2.FossilsArch2Mod"
+		],
+		"client": [
+			"mod.fossilsarch2.FossilsArch2Client"
+		],
+		"fabric-datagen": [
+			"mod.fossilsarch2.FossilsArch2DataGenerator"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"minecraft": "~1.21.5",
+		"java": ">=21",
+		"fabric-api": "*",
+		"geckolib": ">=5.0.1"
+	}
+}

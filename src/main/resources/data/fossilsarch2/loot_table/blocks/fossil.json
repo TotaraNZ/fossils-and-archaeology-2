@@ -1,0 +1,67 @@
+{
+    "type": "minecraft:block",
+    "random_sequence": "fossilsarch2:blocks/fossil",
+    "pools": [
+        {
+            "rolls": 1.0,
+            "bonus_rolls": 0.0,
+            "entries": [
+                {
+                    "type": "minecraft:item",
+                    "name": "fossilsarch2:bio_fossil",
+                    "weight": 25
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "fossilsarch2:relic",
+                    "weight": 25
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "minecraft:bone",
+                    "weight": 35,
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count",
+                            "count": {
+                                "type": "minecraft:uniform",
+                                "min": 1.0,
+                                "max": 3.0
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "minecraft:cobblestone",
+                    "weight": 7
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "fossilsarch2:fern_seed",
+                    "weight": 3
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "fossilsarch2:broken_sword",
+                    "weight": 2
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "fossilsarch2:broken_helmet",
+                    "weight": 2
+                },
+                {
+                    "type": "minecraft:item",
+                    "name": "fossilsarch2:scarab_gem",
+                    "weight": 1
+                }
+            ],
+            "conditions": [
+                {
+                    "condition": "minecraft:survives_explosion"
+                }
+            ]
+        }
+    ]
+}
