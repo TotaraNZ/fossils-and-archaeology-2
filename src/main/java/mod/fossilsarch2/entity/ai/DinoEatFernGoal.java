@@ -19,6 +19,7 @@ public class DinoEatFernGoal extends Goal {
     private final DinosaurEntity dino;
     private BlockPos fernPos;
     private int eatingTimer;
+    private int searchCooldown;
 
     public DinoEatFernGoal(DinosaurEntity dino) {
         this.dino = dino;
@@ -27,9 +28,14 @@ public class DinoEatFernGoal extends Goal {
 
     @Override
     public boolean canStart() {
+        if (searchCooldown > 0) { searchCooldown--; return false; }
         if (!dino.isHungry()) return false;
         fernPos = findNearbyFern();
-        return fernPos != null;
+        if (fernPos == null) {
+            searchCooldown = 40;
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -86,6 +92,7 @@ public class DinoEatFernGoal extends Goal {
         fernPos = null;
         eatingTimer = 0;
         dino.setEating(false);
+        searchCooldown = 60;
     }
 
     private BlockPos findNearbyFern() {

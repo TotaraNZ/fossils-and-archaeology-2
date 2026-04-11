@@ -26,7 +26,11 @@ public class DinoUseFeederGoal extends Goal {
         if (!dino.isHungry()) return false;
 
         feederPos = findNearbyFeeder();
-        return feederPos != null;
+        if (feederPos == null) {
+            cooldown = 60;
+            return false;
+        }
+        return true;
     }
 
     @Override

@@ -70,6 +70,9 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
 
     private static final int DEFAULT_MAX_HUNGER = 100;
 
+    // Bump on NBT schema changes; migrate in readCustomDataFromNbt
+    private static final int CURRENT_DATA_VERSION = 1;
+
     private final String dinosaurId;
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
@@ -370,6 +373,7 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
+        nbt.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
         nbt.putInt("DinoAge", getDinoAge());
         nbt.putInt("Hunger", getHunger());
         nbt.putString("Variant", getVariant());
@@ -378,6 +382,9 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
+        int savedVersion = nbt.getInt("FA2DataVersion", 0);
+        // if (savedVersion < 2) { ... }
+
         setDinoAge(nbt.getInt("DinoAge", 0));
         setHunger(nbt.getInt("Hunger", getMaxHunger()));
         setVariant(nbt.getString("Variant").orElse(""));
