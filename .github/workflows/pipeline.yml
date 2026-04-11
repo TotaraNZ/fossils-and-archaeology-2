@@ -25,20 +25,22 @@ jobs:
           default_bump: false
           release_branches: main
 
+      - name: Exit if no release
+        if: ${{ !steps.tag.outputs.new_tag }}
+        run: |
+          echo "No conventional commit triggered a version bump — skipping build and release."
+          exit 0
+
       - name: Set up JDK 21
+        if: steps.tag.outputs.new_tag
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Build
+        if: steps.tag.outputs.new_tag
         run: ./gradlew build
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fossils-and-archaeology-2
-          path: build/libs/fossils-and-archaeology-2-*.jar
 
       - name: Create GitHub release
         if: steps.tag.outputs.new_tag
@@ -46,5 +48,5 @@ jobs:
         with:
           artifacts: build/libs/fossils-and-archaeology-2-*.jar
           tag: ${{ steps.tag.outputs.new_tag }}
-          name: Fossils & Archaeology 2 ${{ steps.tag.outputs.new_version }}
+          name: ${{ steps.tag.outputs.new_tag }}
           body: ${{ steps.tag.outputs.changelog }}
