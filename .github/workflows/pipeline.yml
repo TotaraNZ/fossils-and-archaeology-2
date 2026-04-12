@@ -35,7 +35,7 @@ jobs:
         if: steps.tag.outputs.new_tag
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
 
       - name: Verify generated data
