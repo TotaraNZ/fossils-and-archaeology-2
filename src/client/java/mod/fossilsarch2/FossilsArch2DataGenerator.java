@@ -2,26 +2,38 @@ package mod.fossilsarch2;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.registry.DinosaurRegistry;
+import mod.fossilsarch2.registry.ModAdvancements;
 import mod.fossilsarch2.registry.ModBlocks;
 import mod.fossilsarch2.registry.ModItems;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.advancement.AdvancementFrame;
+import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.advancement.criterion.ImpossibleCriterion;
+import net.minecraft.advancement.criterion.InventoryChangedCriterion;
+import net.minecraft.advancement.criterion.TickCriterion;
 import net.minecraft.client.data.BlockStateModelGenerator;
 import net.minecraft.client.data.ItemModelGenerator;
 import net.minecraft.client.data.Models;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
@@ -31,6 +43,7 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
 
         pack.addProvider(ItemModelProvider::new);
         pack.addProvider(DinoRecipeProvider::new);
+        pack.addProvider(FossilsAdvancementProvider::new);
     }
 
     // --- Item Models ---
@@ -65,9 +78,6 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
             return new RecipeGenerator(registries, exporter) {
                 @Override
                 public void generate() {
-                    // === Machine blocks ===
-
-                    // Analyser: iron + relic + bio-fossil
                     createShaped(RecipeCategory.DECORATIONS, ModBlocks.ANALYSER)
                             .pattern("IRI")
                             .pattern("IBI")
@@ -77,7 +87,6 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
                             .offerTo(exporter);
 
-                    // Cultivator: glass + green dye + water bucket + iron
                     createShaped(RecipeCategory.DECORATIONS, ModBlocks.CULTIVATOR)
                             .pattern("GDG")
                             .pattern("GWG")
@@ -89,7 +98,6 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
                             .offerTo(exporter);
 
-                    // Worktable: paper over crafting table
                     createShaped(RecipeCategory.DECORATIONS, ModBlocks.WORKTABLE)
                             .pattern("P")
                             .pattern("C")
@@ -98,7 +106,6 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .criterion("has_relic", conditionsFromItem(ModItems.RELIC))
                             .offerTo(exporter);
 
-                    // Feeder: iron + glass + stone button + bucket + stone
                     createShaped(RecipeCategory.DECORATIONS, ModBlocks.FEEDER)
                             .pattern("IGI")
                             .pattern("TBS")
@@ -110,8 +117,6 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .input('S', Items.STONE)
                             .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
                             .offerTo(exporter);
-
-                    // === Scarab tools (gold + gem or diamond + gem) ===
 
                     createShapeless(RecipeCategory.COMBAT, ModItems.SCARAB_SWORD)
                             .input(Items.GOLDEN_SWORD)
@@ -173,8 +178,6 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
                             .offerTo(exporter, recipeKey("scarab_hoe_from_diamond"));
 
-                    // === Ancient artifacts (repair with scarab gem) ===
-
                     createShapeless(RecipeCategory.COMBAT, ModItems.ANCIENT_SWORD)
                             .input(ModItems.BROKEN_SWORD)
                             .input(ModItems.SCARAB_GEM)
@@ -187,26 +190,20 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .criterion("has_broken_helmet", conditionsFromItem(ModItems.BROKEN_HELMET))
                             .offerTo(exporter);
 
-                    // === Dinopedia ===
-
                     createShapeless(RecipeCategory.MISC, ModItems.DINOPEDIA)
                             .input(Items.BOOK)
                             .input(ModItems.BIO_FOSSIL)
                             .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
                             .offerTo(exporter);
 
-                    // === Dinosaur meat cooking (smelting + smoker + campfire) ===
-
                     for (Dinosaur d : DinosaurRegistry.all().values()) {
-                        Item rawMeat = Registries.ITEM.get(
-                                Identifier.of(FossilsArch2Mod.MOD_ID, d.id + "_meat"));
+                        Item rawMeat = Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, d.id + "_meat"));
                         Item cookedMeat = Registries.ITEM.get(
                                 Identifier.of(FossilsArch2Mod.MOD_ID, d.id + "_cooked_meat"));
 
                         if (rawMeat == Items.AIR || cookedMeat == Items.AIR) continue;
 
-                        offerSmelting(List.of(rawMeat), RecipeCategory.FOOD, cookedMeat,
-                                0.35f, 200, d.id);
+                        offerSmelting(List.of(rawMeat), RecipeCategory.FOOD, cookedMeat, 0.35f, 200, d.id);
 
                         offerFoodCookingRecipe("smoking",
                                 net.minecraft.recipe.RecipeSerializer.SMOKING,
@@ -231,6 +228,100 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
         @Override
         public String getName() {
             return "Fossils & Archaeology 2 Recipes";
+        }
+    }
+
+    // --- Advancements ---
+
+    private static class FossilsAdvancementProvider extends FabricAdvancementProvider {
+        private static final Identifier BACKGROUND = Identifier.of("minecraft",
+                "textures/gui/advancements/backgrounds/stone.png");
+
+        protected FossilsAdvancementProvider(FabricDataOutput output,
+                CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+            super(output, registriesFuture);
+        }
+
+        @Override
+        public void generateAdvancement(RegistryWrapper.WrapperLookup registryLookup, Consumer<AdvancementEntry> consumer) {
+            AdvancementEntry root = Advancement.Builder.create()
+                    .display(ModBlocks.SUSPICIOUS_STONE,
+                            Text.translatable("advancement.fossilsarch2.root.title"),
+                            Text.translatable("advancement.fossilsarch2.root.description"),
+                            BACKGROUND,
+                            AdvancementFrame.TASK,
+                            false,
+                            false,
+                            false)
+                    .criterion("entered_world", TickCriterion.Conditions.createTick())
+                    .build(consumer, ModAdvancements.ROOT.toString());
+
+            AdvancementEntry discoverBioFossil = Advancement.Builder.create()
+                    .parent(root)
+                    .display(ModItems.BIO_FOSSIL,
+                            Text.translatable("advancement.fossilsarch2.discover_bio_fossil.title"),
+                            Text.translatable("advancement.fossilsarch2.discover_bio_fossil.description"),
+                            null,
+                            AdvancementFrame.TASK,
+                            true,
+                            true,
+                            false)
+                    .criterion("has_bio_fossil", InventoryChangedCriterion.Conditions.items(ModItems.BIO_FOSSIL))
+                    .build(consumer, ModAdvancements.DISCOVER_BIO_FOSSIL.toString());
+
+            AdvancementEntry extractDna = Advancement.Builder.create()
+                    .parent(discoverBioFossil)
+                    .display(ModItems.DINOPEDIA,
+                            Text.translatable("advancement.fossilsarch2.extract_dna.title"),
+                            Text.translatable("advancement.fossilsarch2.extract_dna.description"),
+                            null,
+                            AdvancementFrame.TASK,
+                            true,
+                            true,
+                            false)
+                    .criterion("has_dna", InventoryChangedCriterion.Conditions.items(getDnaItems()))
+                    .build(consumer, ModAdvancements.EXTRACT_DNA.toString());
+
+            AdvancementEntry cultivateEgg = Advancement.Builder.create()
+                    .parent(extractDna)
+                    .display(Items.EGG,
+                            Text.translatable("advancement.fossilsarch2.cultivate_egg.title"),
+                            Text.translatable("advancement.fossilsarch2.cultivate_egg.description"),
+                            null,
+                            AdvancementFrame.TASK,
+                            true,
+                            true,
+                            false)
+                    .criterion("has_egg", InventoryChangedCriterion.Conditions.items(getEggItems()))
+                    .build(consumer, ModAdvancements.CULTIVATE_EGG.toString());
+
+            Advancement.Builder.create()
+                    .parent(cultivateEgg)
+                    .display(ModItems.DINOPEDIA,
+                            Text.translatable("advancement.fossilsarch2.hatch_dinosaur.title"),
+                            Text.translatable("advancement.fossilsarch2.hatch_dinosaur.description"),
+                            null,
+                            AdvancementFrame.GOAL,
+                            true,
+                            true,
+                            false)
+                    .criterion(ModAdvancements.HATCHED_DINOSAUR_CRITERION,
+                            Criteria.IMPOSSIBLE.create(new ImpossibleCriterion.Conditions()))
+                    .build(consumer, ModAdvancements.HATCH_DINOSAUR.toString());
+        }
+
+        private static ItemConvertible[] getDnaItems() {
+            return DinosaurRegistry.all().values().stream()
+                    .map(dino -> Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, dino.id + "_dna")))
+                    .filter(item -> item != Items.AIR)
+                    .toArray(ItemConvertible[]::new);
+        }
+
+        private static ItemConvertible[] getEggItems() {
+            return DinosaurRegistry.all().values().stream()
+                    .map(dino -> Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, dino.id + "_egg")))
+                    .filter(item -> item != Items.AIR)
+                    .toArray(ItemConvertible[]::new);
         }
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import mod.fossilsarch2.network.DinopediaPayload;
+import mod.fossilsarch2.registry.ModAdvancements;
 import mod.fossilsarch2.registry.ModItems;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.data.DataTracker;
@@ -165,6 +166,10 @@ public class DinoEggEntity extends Entity implements GeoEntity {
             PlayerEntity owner = serverWorld.getPlayerByUuid(ownerUuid);
             if (owner != null) {
                 baby.setTamedBy(owner);
+                if (owner instanceof ServerPlayerEntity serverPlayer) {
+                    ModAdvancements.grant(serverPlayer, ModAdvancements.HATCH_DINOSAUR,
+                            ModAdvancements.HATCHED_DINOSAUR_CRITERION);
+                }
             }
         }
 

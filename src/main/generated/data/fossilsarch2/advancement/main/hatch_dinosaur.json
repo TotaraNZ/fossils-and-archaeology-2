@@ -1,0 +1,27 @@
+{
+  "parent": "fossilsarch2:main/cultivate_egg",
+  "criteria": {
+    "hatched_dinosaur": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.fossilsarch2.hatch_dinosaur.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "fossilsarch2:dinopedia"
+    },
+    "title": {
+      "translate": "advancement.fossilsarch2.hatch_dinosaur.title"
+    }
+  },
+  "requirements": [
+    [
+      "hatched_dinosaur"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

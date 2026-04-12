@@ -1,0 +1,33 @@
+{
+  "parent": "fossilsarch2:main/root",
+  "criteria": {
+    "has_bio_fossil": {
+      "conditions": {
+        "items": [
+          {
+            "items": "fossilsarch2:bio_fossil"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.fossilsarch2.discover_bio_fossil.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "fossilsarch2:bio_fossil"
+    },
+    "title": {
+      "translate": "advancement.fossilsarch2.discover_bio_fossil.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_bio_fossil"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

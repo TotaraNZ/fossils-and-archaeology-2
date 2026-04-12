@@ -1,0 +1,28 @@
+{
+  "criteria": {
+    "entered_world": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "description": {
+      "translate": "advancement.fossilsarch2.root.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "fossilsarch2:suspicious_stone"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.fossilsarch2.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "entered_world"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

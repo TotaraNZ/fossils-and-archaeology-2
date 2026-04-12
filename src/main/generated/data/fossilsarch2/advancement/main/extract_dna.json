@@ -1,0 +1,36 @@
+{
+  "parent": "fossilsarch2:main/discover_bio_fossil",
+  "criteria": {
+    "has_dna": {
+      "conditions": {
+        "items": [
+          {
+            "items": "fossilsarch2:triceratops_dna"
+          },
+          {
+            "items": "fossilsarch2:tyrannosaurus_dna"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.fossilsarch2.extract_dna.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "fossilsarch2:dinopedia"
+    },
+    "title": {
+      "translate": "advancement.fossilsarch2.extract_dna.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_dna"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

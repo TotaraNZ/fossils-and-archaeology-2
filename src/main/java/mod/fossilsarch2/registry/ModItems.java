@@ -9,6 +9,7 @@ import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.item.DinoEggItem;
 import mod.fossilsarch2.item.ItemDinopedia;
 import mod.fossilsarch2.item.ScarabGemMaterial;
+import mod.fossilsarch2.item.TooltipItem;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.HoeItem;
@@ -27,18 +28,24 @@ public final class ModItems {
     private static final net.minecraft.item.ToolMaterial SCARAB = ScarabGemMaterial.SCARAB_GEM;
 
     // Core items
-    public static final Item BIO_FOSSIL = register("bio_fossil");
-    public static final Item RELIC = register("relic");
-    public static final Item SCARAB_GEM = register("scarab_gem");
+    public static final Item BIO_FOSSIL = register("bio_fossil",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.bio_fossil"), new Item.Settings());
+    public static final Item RELIC = register("relic",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.relic"), new Item.Settings());
+    public static final Item SCARAB_GEM = register("scarab_gem",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.scarab_gem"), new Item.Settings());
     public static final Item DINOPEDIA = register("dinopedia", ItemDinopedia::new, new Item.Settings());
-    public static final Item FERN_SEED = register("fern_seed");
+    public static final Item FERN_SEED = register("fern_seed",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.fern_seed"), new Item.Settings());
 
     // Ancient artifacts — sword uses applySwordSettings for proper damage/speed
     public static final Item ANCIENT_SWORD = register("ancient_sword", Item::new,
             SCARAB.applySwordSettings(new Item.Settings(), 3.0f, -2.4f));
     public static final Item ANCIENT_HELMET = register("ancient_helmet");
-    public static final Item BROKEN_SWORD = register("broken_sword");
-    public static final Item BROKEN_HELMET = register("broken_helmet");
+    public static final Item BROKEN_SWORD = register("broken_sword",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.broken_artifact"), new Item.Settings());
+    public static final Item BROKEN_HELMET = register("broken_helmet",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.broken_artifact"), new Item.Settings());
 
     // Scarab tools
     public static final Item SCARAB_SWORD = register("scarab_sword", Item::new,
@@ -55,7 +62,8 @@ public final class ModItems {
     public static void registerDinosaurItems() {
         for (Dinosaur d : DinosaurRegistry.all().values()) {
             // DNA
-            register(d.id + "_dna");
+            register(d.id + "_dna", settings -> new TooltipItem(settings, "tooltip.fossilsarch2.dna"),
+                    new Item.Settings());
 
             // Egg
             register(d.id + "_egg", DinoEggItem::new, new Item.Settings().maxCount(1));

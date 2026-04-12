@@ -21,6 +21,15 @@
     "item.fossilsarch2.scarab_shovel": "Scarab Shovel",
     "item.fossilsarch2.scarab_hoe": "Scarab Hoe",
 
+    "tooltip.fossilsarch2.bio_fossil": "Can be analysed for DNA.",
+    "tooltip.fossilsarch2.relic": "Used in ancient machinery.",
+    "tooltip.fossilsarch2.scarab_gem": "Used to restore artifacts and tools.",
+    "tooltip.fossilsarch2.dinopedia": "Use on a dinosaur or egg for more information.",
+    "tooltip.fossilsarch2.fern_seed": "Can be planted and grown.",
+    "tooltip.fossilsarch2.broken_artifact": "Can be restored with a Scarab Gem.",
+    "tooltip.fossilsarch2.dna": "Can be cultivated into an egg.",
+    "tooltip.fossilsarch2.egg": "Hatches in bright light.",
+
     "item.fossilsarch2.triceratops_dna": "Triceratops DNA",
     "item.fossilsarch2.triceratops_egg": "Triceratops Egg",
     "item.fossilsarch2.triceratops_meat": "Raw Triceratops Meat",
@@ -51,6 +60,17 @@
     "gui.fossilsarch2.dinopedia.progress": "Progress",
     "gui.fossilsarch2.dinopedia.warm": "Warm",
     "gui.fossilsarch2.dinopedia.cold": "Cold",
+
+    "advancement.fossilsarch2.root.title": "Rediscover Prehistory",
+    "advancement.fossilsarch2.root.description": "Brush suspicious stone to uncover buried remains.",
+    "advancement.fossilsarch2.discover_bio_fossil.title": "Ancient Remains",
+    "advancement.fossilsarch2.discover_bio_fossil.description": "Recover a bio-fossil from suspicious stone.",
+    "advancement.fossilsarch2.extract_dna.title": "Genetic Material",
+    "advancement.fossilsarch2.extract_dna.description": "Use an analyser to extract dinosaur DNA.",
+    "advancement.fossilsarch2.cultivate_egg.title": "Life Finds a Way",
+    "advancement.fossilsarch2.cultivate_egg.description": "Grow a dinosaur egg in a cultivator.",
+    "advancement.fossilsarch2.hatch_dinosaur.title": "Welcome Back",
+    "advancement.fossilsarch2.hatch_dinosaur.description": "Hatch a dinosaur egg.",
 
     "subtitles.fossilsarch2.triceratops.ambient": "Triceratops calls",
     "subtitles.fossilsarch2.triceratops.hurt": "Triceratops hurts",
