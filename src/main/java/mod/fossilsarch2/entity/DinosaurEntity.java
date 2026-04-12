@@ -2,10 +2,12 @@ package mod.fossilsarch2.entity;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
+import mod.fossilsarch2.entity.ai.DinoDefensiveMeleeGoal;
 import mod.fossilsarch2.entity.ai.DinoEatFernGoal;
 import mod.fossilsarch2.entity.ai.DinoUseFeederGoal;
 import mod.fossilsarch2.registry.ModItems;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
@@ -15,10 +17,12 @@ import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.damagesource.DamageSource;
@@ -51,6 +55,13 @@ import com.geckolib.animation.RawAnimation;
 import com.geckolib.util.GeckoLibUtil;
 
 public class DinosaurEntity extends TamableAnimal implements GeoEntity {
+
+    public enum GrowthStage {
+        HATCHLING,
+        JUVENILE,
+        SUBADULT,
+        ADULT
+    }
 
     protected static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("walk");
     protected static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("idle");
@@ -129,18 +140,20 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
             return;
         }
         Dinosaur.Diet diet = dino.diet != null ? dino.diet : Dinosaur.Diet.HERBIVORE;
+        this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, LivingEntity.class, 10.0f, 1.0D,
+                Math.max(1.15f, dino.flee_speed), this::shouldFear));
 
         if (diet == Dinosaur.Diet.CARNIVORE || diet == Dinosaur.Diet.OMNIVORE) {
             this.goalSelector.addGoal(2, new MeleeAttackGoal(this, dino.chase_speed, false));
-            // Hunt animals (not other dinosaurs)
-            this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, false));
-            // Wild (untamed) carnivores attack players on sight
-            this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Player.class, false,
-                    (target, level) -> !this.isTame()));
+            this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, 10, false, false,
+                    (target, level) -> this.shouldHunt(target)));
+            this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Player.class, 10, false, false,
+                    (target, level) -> target instanceof Player player && this.shouldAttackPlayer(player)));
         }
 
         if (diet == Dinosaur.Diet.HERBIVORE) {
-            this.goalSelector.addGoal(1, new PanicGoal(this, dino.flee_speed));
+            this.goalSelector.addGoal(2, new DinoDefensiveMeleeGoal(this, dino.chase_speed));
+            this.goalSelector.addGoal(3, new PanicGoal(this, dino.flee_speed));
         }
     }
 
@@ -149,6 +162,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
                 .add(Attributes.MAX_HEALTH, d.health)
                 .add(Attributes.MOVEMENT_SPEED, d.speed)
                 .add(Attributes.ATTACK_DAMAGE, d.attack_damage)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.0)
                 .add(Attributes.TEMPT_RANGE, 16.0)
                 .add(Attributes.FOLLOW_RANGE, 32.0)
                 .add(Attributes.STEP_HEIGHT, 1.0);
@@ -160,6 +174,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
                 .add(Attributes.MAX_HEALTH, 20.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.ATTACK_DAMAGE, 4.0)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.0)
                 .add(Attributes.TEMPT_RANGE, 16.0);
     }
 
@@ -192,13 +207,14 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     public void setDinoAge(int age) {
         Dinosaur dino = getDinosaur();
         int clampedAge = dino != null ? Math.max(0, Math.min(age, dino.max_age)) : Math.max(0, age);
-
-        if (entityData.get(DINO_AGE) == clampedAge) {
-            return;
+        boolean changed = entityData.get(DINO_AGE) != clampedAge;
+        if (changed) {
+            entityData.set(DINO_AGE, clampedAge);
         }
-
-        entityData.set(DINO_AGE, clampedAge);
-        refreshDimensions();
+        applyGrowthDerivedStats();
+        if (changed) {
+            refreshDimensions();
+        }
     }
 
     public boolean growByStages(int stages) {
@@ -216,6 +232,10 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         return dino != null && getDinoAge() < dino.max_age;
     }
 
+    public GrowthStage getGrowthStage() {
+        return DinosaurCombat.getGrowthStage(this);
+    }
+
     @Override
     public float getAgeScale() {
         return getScaleFactor();
@@ -224,9 +244,21 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     public float getScaleFactor() {
         Dinosaur dino = getDinosaur();
         if (dino == null) return 1.0f;
-        if (getDinoAge() >= dino.max_age) return 1.0f;
+        if (getDinoAge() >= dino.max_age) return dino.adult_scale;
         float progress = (float) getDinoAge() / dino.max_age;
-        return dino.baby_scale + (1.0f - dino.baby_scale) * progress;
+        return dino.baby_scale + (dino.adult_scale - dino.baby_scale) * progress;
+    }
+
+    public double getBodyMass() {
+        return DinosaurCombat.getBodyMass(this);
+    }
+
+    public double getAdultBodyMass() {
+        return DinosaurCombat.getAdultBodyMass(this);
+    }
+
+    public double getCombatPower() {
+        return DinosaurCombat.getCombatPower(this);
     }
 
     // --- Hunger ---
@@ -256,6 +288,45 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         return (float) getDinoAge() / dino.max_age;
     }
 
+    public boolean isDefensivelyMature() {
+        return DinosaurCombat.isDefensivelyMature(this);
+    }
+
+    public boolean shouldHunt(LivingEntity target) {
+        return DinosaurCombat.shouldHunt(this, target);
+    }
+
+    public boolean shouldAttackPlayer(Player target) {
+        return DinosaurCombat.shouldAttackPlayer(this, target);
+    }
+
+    public boolean shouldFear(LivingEntity target) {
+        return DinosaurCombat.shouldFear(this, target);
+    }
+
+    private void applyGrowthDerivedStats() {
+        Dinosaur dino = getDinosaur();
+        if (dino == null) return;
+
+        double currentMaxHealth = Math.max(1.0, getMaxHealth());
+        double healthFraction = getHealth() / currentMaxHealth;
+        setBaseAttribute(Attributes.MAX_HEALTH, dino.health * DinosaurCombat.getHealthScaleFactor(this));
+        setBaseAttribute(Attributes.ATTACK_DAMAGE, dino.attack_damage * DinosaurCombat.getAttackScaleFactor(this));
+        setBaseAttribute(Attributes.KNOCKBACK_RESISTANCE, DinosaurCombat.getKnockbackResistanceForGrowth(this));
+
+        float scaledMaxHealth = (float) Math.max(1.0, getAttributeValue(Attributes.MAX_HEALTH));
+        float scaledHealth = (float) Math.max(0.1, Math.min(scaledMaxHealth, scaledMaxHealth * healthFraction));
+        setHealth(scaledHealth);
+    }
+
+    private void setBaseAttribute(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
+            double value) {
+        AttributeInstance instance = getAttribute(attribute);
+        if (instance != null) {
+            instance.setBaseValue(value);
+        }
+    }
+
     public void feed(int amount) {
         setHunger(getHunger() + amount);
     }
@@ -273,6 +344,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         super.onSyncedDataUpdated(key);
 
         if (DINO_AGE.equals(key)) {
+            applyGrowthDerivedStats();
             refreshDimensions();
         }
     }
@@ -386,6 +458,20 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
             hurtServer((ServerLevel) level(), damageSources().starve(), 1.0f);
         }
 
+        LivingEntity currentTarget = getTarget();
+        if (currentTarget != null) {
+            boolean keepTarget = currentTarget.isAlive();
+            if (keepTarget && currentTarget instanceof Player player) {
+                keepTarget = shouldAttackPlayer(player);
+            } else if (keepTarget && currentTarget instanceof Animal animal) {
+                keepTarget = shouldHunt(animal) || getLastHurtByMob() == currentTarget;
+            }
+
+            if (!keepTarget || shouldFear(currentTarget)) {
+                setTarget(null);
+            }
+        }
+
         // Random special idle animations from JSON
         if (specialAnimCooldown > 0) {
             specialAnimCooldown--;
@@ -490,7 +576,12 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
     protected PlayState attackController(final AnimationTest<DinosaurEntity> animTest) {
         if (this.swinging) {
-            return animTest.setAndContinue(BITE_ANIM);
+            Dinosaur dino = getDinosaur();
+            String attackAnimation = dino != null ? dino.attack_animation : null;
+            if (attackAnimation != null && !attackAnimation.isEmpty()) {
+                return animTest.setAndContinue(RawAnimation.begin().thenPlay(attackAnimation));
+            }
+            return PlayState.STOP;
         }
         if (this.isEating()) {
             return animTest.setAndContinue(EAT_ANIM);

@@ -4,9 +4,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
 import mod.fossilsarch2.FossilsArch2Mod;
@@ -49,6 +52,12 @@ public final class DinosaurJsonLoader {
                             continue;
                         }
 
+                        String animationError = validateAnimationReferences(mod, dinosaur);
+                        if (animationError != null) {
+                            FossilsArch2Mod.LOGGER.error("Invalid dinosaur '{}' in {}: {}", dinosaur.id, path, animationError);
+                            continue;
+                        }
+
                         // Tag with source mod namespace for addon support
                         dinosaur.namespace = modId;
                         dinosaurs.add(dinosaur);
@@ -65,5 +74,38 @@ public final class DinosaurJsonLoader {
         }
 
         return dinosaurs;
+    }
+
+    private static String validateAnimationReferences(ModContainer mod, Dinosaur dinosaur) {
+        Path animationPath = mod.findPath("assets/" + mod.getMetadata().getId() + "/geckolib/animations/" + dinosaur.id + ".animation.json")
+                .orElse(null);
+        if (animationPath == null || !Files.isRegularFile(animationPath)) {
+            return "missing animation file assets/" + mod.getMetadata().getId() + "/geckolib/animations/" + dinosaur.id + ".animation.json";
+        }
+
+        try (var reader = Files.newBufferedReader(animationPath)) {
+            JsonObject root = GSON.fromJson(reader, JsonObject.class);
+            JsonObject animations = root != null ? root.getAsJsonObject("animations") : null;
+            if (animations == null) {
+                return "animation file has no 'animations' object";
+            }
+
+            Set<String> names = new HashSet<>(animations.keySet());
+            if (!dinosaur.attack_animation.isEmpty() && !names.contains(dinosaur.attack_animation)) {
+                return "attack_animation '" + dinosaur.attack_animation + "' is missing from " + animationPath.getFileName();
+            }
+
+            if (dinosaur.special_animations != null) {
+                for (String animation : dinosaur.special_animations) {
+                    if (!names.contains(animation)) {
+                        return "special animation '" + animation + "' is missing from " + animationPath.getFileName();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return "could not validate animation file: " + e.getMessage();
+        }
+
+        return null;
     }
 }
