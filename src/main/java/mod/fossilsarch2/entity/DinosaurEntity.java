@@ -31,6 +31,7 @@ import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,6 +39,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.Identifier;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -188,12 +190,35 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     }
 
     public void setDinoAge(int age) {
-        entityData.set(DINO_AGE, age);
+        Dinosaur dino = getDinosaur();
+        int clampedAge = dino != null ? Math.max(0, Math.min(age, dino.max_age)) : Math.max(0, age);
+
+        if (entityData.get(DINO_AGE) == clampedAge) {
+            return;
+        }
+
+        entityData.set(DINO_AGE, clampedAge);
+        refreshDimensions();
+    }
+
+    public boolean growByStages(int stages) {
+        Dinosaur dino = getDinosaur();
+        if (dino == null || stages <= 0 || getDinoAge() >= dino.max_age) {
+            return false;
+        }
+
+        setDinoAge(Math.min(getDinoAge() + stages, dino.max_age));
+        return true;
     }
 
     public boolean isBaby() {
         Dinosaur dino = getDinosaur();
         return dino != null && getDinoAge() < dino.max_age;
+    }
+
+    @Override
+    public float getAgeScale() {
+        return getScaleFactor();
     }
 
     public float getScaleFactor() {
@@ -243,6 +268,15 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         entityData.set(EATING, eating);
     }
 
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
+
+        if (DINO_AGE.equals(key)) {
+            refreshDimensions();
+        }
+    }
+
     // --- Taming ---
 
     public void setTamedBy(Player player) {
@@ -259,6 +293,23 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
                     (net.minecraft.server.level.ServerPlayer) player,
                     new mod.fossilsarch2.network.DinopediaPayload(getId()));
+            return InteractionResult.SUCCESS;
+        }
+
+        if (stack.getItem() == ModItems.ESSENCE_CHICKEN) {
+            if (!level().isClientSide()) {
+                if (!isBaby()) {
+                    player.sendSystemMessage(Component.translatable("message.fossilsarch2.essence_fail_adult"));
+                    return InteractionResult.PASS;
+                }
+
+                if (growByStages(1)) {
+                    if (!player.isCreative()) {
+                        consumeHeldItemAndGiveRemainder(player, hand, stack, new ItemStack(Items.GLASS_BOTTLE));
+                    }
+                    playSound(net.minecraft.sounds.SoundEvents.GENERIC_EAT.value(), 0.8f, 1.0f);
+                }
+            }
             return InteractionResult.SUCCESS;
         }
 
@@ -298,6 +349,15 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         }
 
         return false;
+    }
+
+    private static void consumeHeldItemAndGiveRemainder(Player player, InteractionHand hand, ItemStack heldStack, ItemStack remainder) {
+        heldStack.shrink(1);
+        if (heldStack.isEmpty()) {
+            player.setItemInHand(hand, remainder);
+        } else if (!player.getInventory().add(remainder)) {
+            player.drop(remainder, false);
+        }
     }
 
     // --- Tick ---

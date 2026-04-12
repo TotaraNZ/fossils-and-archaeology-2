@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bucket",
+    "minecraft:chicken"
+  ],
+  "result": {
+    "id": "fossilsarch2:chicken_soup_raw"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "fossilsarch2:chicken_soup_cooked",
+    "G": "minecraft:glass_bottle"
+  },
+  "pattern": [
+    "GGG",
+    "GCG",
+    "GGG"
+  ],
+  "result": {
+    "count": 8,
+    "id": "fossilsarch2:essence_chicken"
+  }
+}

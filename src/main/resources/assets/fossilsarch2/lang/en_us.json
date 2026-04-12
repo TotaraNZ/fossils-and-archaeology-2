@@ -11,6 +11,9 @@
     "item.fossilsarch2.scarab_gem": "Scarab Gem",
     "item.fossilsarch2.dinopedia": "Dinopedia",
     "item.fossilsarch2.fern_seed": "Fern Seed",
+    "item.fossilsarch2.chicken_soup_raw": "Raw Chicken Soup",
+    "item.fossilsarch2.chicken_soup_cooked": "Cooked Chicken Soup",
+    "item.fossilsarch2.essence_chicken": "Essence of Chicken",
     "item.fossilsarch2.ancient_sword": "Ancient Sword",
     "item.fossilsarch2.ancient_helmet": "Ancient Helmet",
     "item.fossilsarch2.broken_sword": "Broken Sword",
@@ -26,6 +29,7 @@
     "tooltip.fossilsarch2.scarab_gem": "Used to restore artifacts and tools.",
     "tooltip.fossilsarch2.dinopedia": "Use on a dinosaur or egg for more information.",
     "tooltip.fossilsarch2.fern_seed": "Can be planted and grown.",
+    "tooltip.fossilsarch2.essence_chicken": "Use on a juvenile dinosaur to advance its growth.",
     "tooltip.fossilsarch2.broken_artifact": "Can be restored with a Scarab Gem.",
     "tooltip.fossilsarch2.dna": "Can be cultivated into an egg.",
     "tooltip.fossilsarch2.egg": "Hatches in bright light.",
@@ -71,6 +75,8 @@
     "advancement.fossilsarch2.cultivate_egg.description": "Grow a dinosaur egg in a cultivator.",
     "advancement.fossilsarch2.hatch_dinosaur.title": "Welcome Back",
     "advancement.fossilsarch2.hatch_dinosaur.description": "Hatch a dinosaur egg.",
+
+    "message.fossilsarch2.essence_fail_adult": "This dinosaur is fully grown!",
 
     "subtitles.fossilsarch2.triceratops.ambient": "Triceratops calls",
     "subtitles.fossilsarch2.triceratops.hurt": "Triceratops hurts",

@@ -205,6 +205,31 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
                             .unlockedBy("has_bio_fossil", has(ModItems.BIO_FOSSIL))
                             .save(output);
 
+                    shapeless(RecipeCategory.FOOD, ModItems.CHICKEN_SOUP_RAW)
+                            .requires(Items.BUCKET)
+                            .requires(Items.CHICKEN)
+                            .unlockedBy("has_chicken", has(Items.CHICKEN))
+                            .save(output);
+
+                    SimpleCookingRecipeBuilder.smelting(Ingredient.of(ModItems.CHICKEN_SOUP_RAW), RecipeCategory.FOOD,
+                                    CookingBookCategory.FOOD, ModItems.CHICKEN_SOUP_COOKED, 1.0f, 200)
+                            .unlockedBy("has_chicken_soup_raw", has(ModItems.CHICKEN_SOUP_RAW))
+                            .save(output, recipeKey("chicken_soup_cooked_from_smelting"));
+
+                    SimpleCookingRecipeBuilder.smoking(Ingredient.of(ModItems.CHICKEN_SOUP_RAW), RecipeCategory.FOOD,
+                                    ModItems.CHICKEN_SOUP_COOKED, 1.0f, 100)
+                            .unlockedBy("has_chicken_soup_raw", has(ModItems.CHICKEN_SOUP_RAW))
+                            .save(output, recipeKey("chicken_soup_cooked_from_smoking"));
+
+                    shaped(RecipeCategory.MISC, ModItems.ESSENCE_CHICKEN, 8)
+                            .pattern("GGG")
+                            .pattern("GCG")
+                            .pattern("GGG")
+                            .define('G', Items.GLASS_BOTTLE)
+                            .define('C', ModItems.CHICKEN_SOUP_COOKED)
+                            .unlockedBy("has_chicken_soup_cooked", has(ModItems.CHICKEN_SOUP_COOKED))
+                            .save(output);
+
                     for (Dinosaur d : DinosaurRegistry.all().values()) {
                         Item rawMeat = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, d.id + "_meat"));
                         Item cookedMeat = BuiltInRegistries.ITEM.getValue(

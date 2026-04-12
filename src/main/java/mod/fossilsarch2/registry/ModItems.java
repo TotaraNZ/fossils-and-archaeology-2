@@ -8,6 +8,7 @@ import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.item.DinoEggItem;
 import mod.fossilsarch2.item.ItemDinopedia;
+import mod.fossilsarch2.item.RemainderFoodItem;
 import mod.fossilsarch2.item.ScarabGemMaterial;
 import mod.fossilsarch2.item.TooltipItem;
 import net.minecraft.core.Registry;
@@ -39,6 +40,20 @@ public final class ModItems {
     public static final Item DINOPEDIA = register("dinopedia", ItemDinopedia::new, new Item.Properties());
     public static final Item FERN_SEED = register("fern_seed",
             settings -> new TooltipItem(settings, "tooltip.fossilsarch2.fern_seed"), new Item.Properties());
+    public static final Item CHICKEN_SOUP_RAW = register("chicken_soup_raw",
+            RemainderFoodItem::new, new Item.Properties()
+                    .food(new FoodProperties.Builder()
+                            .nutrition(4)
+                            .saturationModifier(2.0f)
+                            .build()));
+    public static final Item CHICKEN_SOUP_COOKED = register("chicken_soup_cooked",
+            RemainderFoodItem::new, new Item.Properties()
+                    .food(new FoodProperties.Builder()
+                            .nutrition(8)
+                            .saturationModifier(2.0f)
+                            .build()));
+    public static final Item ESSENCE_CHICKEN = register("essence_chicken",
+            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.essence_chicken"), new Item.Properties());
 
     // Ancient artifacts — sword uses applySwordSettings for proper damage/speed
     public static final Item ANCIENT_SWORD = register("ancient_sword", Item::new,
