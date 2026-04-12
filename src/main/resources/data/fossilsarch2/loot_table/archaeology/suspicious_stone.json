@@ -1,0 +1,46 @@
+{
+  "type": "minecraft:archaeology",
+  "random_sequence": "fossilsarch2:archaeology/suspicious_stone",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "fossilsarch2:bio_fossil",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "fossilsarch2:relic",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bone",
+          "weight": 35
+        },
+        {
+          "type": "minecraft:item",
+          "name": "fossilsarch2:fern_seed",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "fossilsarch2:broken_sword",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "fossilsarch2:broken_helmet",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "fossilsarch2:scarab_gem",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

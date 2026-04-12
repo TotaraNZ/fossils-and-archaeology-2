@@ -9,6 +9,7 @@ import mod.fossilsarch2.block.AnalyserBlock;
 import mod.fossilsarch2.block.CultivatorBlock;
 import mod.fossilsarch2.block.FeederBlock;
 import mod.fossilsarch2.block.FernBlock;
+import mod.fossilsarch2.block.SuspiciousStoneBlock;
 import mod.fossilsarch2.block.WorktableBlock;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -16,16 +17,20 @@ import net.minecraft.block.Blocks;
 import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 
 public final class ModBlocks {
 
         public static Map<RegistryKey<Block>, Block> ALL = new HashMap<>();
 
-        public static final Block FOSSIL = register(
-                        "fossil",
-                        Block::new,
-                        AbstractBlock.Settings.copy(Blocks.STONE));
+        public static final Block SUSPICIOUS_STONE = register(
+                        "suspicious_stone",
+                        SuspiciousStoneBlock::new,
+                        AbstractBlock.Settings.copy(Blocks.STONE)
+                                .sounds(BlockSoundGroup.STONE)
+                                .pistonBehavior(PistonBehavior.DESTROY));
 
         public static final Block ANALYSER = register(
                         "analyser",

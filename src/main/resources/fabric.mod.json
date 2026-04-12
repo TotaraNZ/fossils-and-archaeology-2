@@ -12,6 +12,9 @@
 	},
 	"license": "MIT",
 	"icon": "assets/fossilsarch2/icon.png",
+	"mixins": [
+		"fossilsarch2.mixins.json"
+	],
 	"environment": "*",
 	"entrypoints": {
 		"main": [
