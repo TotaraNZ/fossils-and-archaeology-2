@@ -8,6 +8,7 @@ import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.registry.DinosaurRegistry;
 import mod.fossilsarch2.registry.ModAdvancements;
 import mod.fossilsarch2.registry.ModBlocks;
+import mod.fossilsarch2.registry.ModItemTags;
 import mod.fossilsarch2.registry.ModItems;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -15,6 +16,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
@@ -34,6 +36,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -52,6 +55,7 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
 
         pack.addProvider(ItemModelProvider::new);
         pack.addProvider(DinoRecipeProvider::new);
+        pack.addProvider(FeederItemTagProvider::new);
         pack.addProvider(FossilsAdvancementProvider::new);
     }
 
@@ -265,6 +269,64 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
         @Override
         public String getName() {
             return "Fossils & Archaeology 2 Recipes";
+        }
+    }
+
+    private static class FeederItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
+        public FeederItemTagProvider(FabricPackOutput output,
+                CompletableFuture<HolderLookup.Provider> registriesFuture) {
+            super(output, registriesFuture);
+        }
+
+        @Override
+        protected void addTags(HolderLookup.Provider registries) {
+            for (Dinosaur d : DinosaurRegistry.all().values()) {
+                addIfPresent(ModItemTags.DINO_MEAT, d.id + "_meat");
+                addIfPresent(ModItemTags.DINO_MEAT, d.id + "_cooked_meat");
+            }
+
+            valueLookupBuilder(ModItemTags.FEEDER_MEAT)
+                    .addOptionalTag(ItemTags.MEAT)
+                    .addOptionalTag(ItemTags.FISHES)
+                    .addTag(ModItemTags.DINO_MEAT);
+
+            valueLookupBuilder(ModItemTags.FEEDER_VEGETABLE)
+                    .addOptionalTag(ItemTags.COW_FOOD)
+                    .addOptionalTag(ItemTags.HORSE_FOOD)
+                    .addOptionalTag(ItemTags.PIG_FOOD)
+                    .addOptionalTag(ItemTags.CHICKEN_FOOD)
+                    .addOptionalTag(ItemTags.RABBIT_FOOD)
+                    .addOptionalTag(ItemTags.SHEEP_FOOD)
+                    .addOptionalTag(ItemTags.LLAMA_FOOD)
+                    .addOptionalTag(ItemTags.GOAT_FOOD)
+                    .addOptionalTag(ItemTags.TURTLE_FOOD)
+                    .addOptionalTag(ItemTags.SNIFFER_FOOD)
+                    .addOptionalTag(ItemTags.CAMEL_FOOD)
+                    .addOptionalTag(ItemTags.PANDA_FOOD)
+                    .addOptionalTag(ItemTags.STRIDER_FOOD)
+                    .addOptionalTag(ItemTags.ZOMBIE_HORSE_FOOD)
+                    .add(Items.APPLE)
+                    .add(Items.MELON_SLICE)
+                    .add(Items.SWEET_BERRIES)
+                    .add(Items.GLOW_BERRIES)
+                    .add(Items.KELP)
+                    .add(Items.DRIED_KELP)
+                    .add(Items.BREAD)
+                    .add(Items.COOKIE)
+                    .add(Items.PUMPKIN_PIE)
+                    .add(ModItems.FERN_SEED);
+        }
+
+        private void addIfPresent(net.minecraft.tags.TagKey<Item> tag, String path) {
+            Item item = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path));
+            if (item != Items.AIR) {
+                valueLookupBuilder(tag).add(item);
+            }
+        }
+
+        @Override
+        public String getName() {
+            return "Fossils & Archaeology 2 Item Tags";
         }
     }
 

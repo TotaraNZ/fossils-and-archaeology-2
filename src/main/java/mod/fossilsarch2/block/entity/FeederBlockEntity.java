@@ -1,15 +1,12 @@
 package mod.fossilsarch2.block.entity;
 
-import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.registry.ModBlockEntities;
+import mod.fossilsarch2.registry.ModItemTags;
 import mod.fossilsarch2.screen.FeederScreenHandler;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -17,8 +14,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -74,6 +71,7 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
     }
     @Override public ItemStack removeItemNoUpdate(int slot) { return ContainerHelper.takeItem(items, slot); }
     @Override public void setItem(int slot, ItemStack stack) { items.set(slot, stack); setChanged(); }
+    @Override public boolean canPlaceItem(int slot, ItemStack stack) { return acceptsItem(slot, stack); }
     @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
     @Override public void clearContent() { items.clear(); }
 
@@ -112,8 +110,9 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
         // Consume items from slots into internal food levels
         ItemStack meatStack = entity.items.get(MEAT_SLOT);
         if (!meatStack.isEmpty() && entity.meatLevel < MAX_FOOD) {
-            if (isMeat(meatStack)) {
-                entity.meatLevel = Math.min(MAX_FOOD, entity.meatLevel + 50);
+            int foodValue = getFoodValue(MEAT_SLOT, meatStack);
+            if (foodValue > 0) {
+                entity.meatLevel = Math.min(MAX_FOOD, entity.meatLevel + foodValue);
                 meatStack.shrink(1);
                 entity.setChanged();
             }
@@ -121,8 +120,9 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
 
         ItemStack vegStack = entity.items.get(VEG_SLOT);
         if (!vegStack.isEmpty() && entity.vegLevel < MAX_FOOD) {
-            if (isVegetable(vegStack)) {
-                entity.vegLevel = Math.min(MAX_FOOD, entity.vegLevel + 50);
+            int foodValue = getFoodValue(VEG_SLOT, vegStack);
+            if (foodValue > 0) {
+                entity.vegLevel = Math.min(MAX_FOOD, entity.vegLevel + foodValue);
                 vegStack.shrink(1);
                 entity.setChanged();
             }
@@ -151,17 +151,32 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
     public int getMeatLevel() { return meatLevel; }
     public int getVegLevel() { return vegLevel; }
 
-    // Use vanilla #minecraft:meat for meat detection. Custom tag for vegetables since
-    // vanilla has no generic vegetable/crop-food tag.
-    private static final TagKey<Item> MEAT_TAG = ItemTags.MEAT;
-    private static final TagKey<Item> VEG_TAG = TagKey.create(Registries.ITEM,
-            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "feeder_vegetable"));
+    public static boolean acceptsItem(int slot, ItemStack stack) {
+        if (stack.isEmpty()) return false;
+
+        return switch (slot) {
+            case MEAT_SLOT -> isMeat(stack);
+            case VEG_SLOT -> isVegetable(stack);
+            default -> false;
+        };
+    }
 
     private static boolean isMeat(ItemStack stack) {
-        return stack.is(MEAT_TAG);
+        return stack.is(ModItemTags.FEEDER_MEAT);
     }
 
     private static boolean isVegetable(ItemStack stack) {
-        return stack.is(VEG_TAG);
+        return stack.is(ModItemTags.FEEDER_VEGETABLE);
+    }
+
+    private static int getFoodValue(int slot, ItemStack stack) {
+        if (!acceptsItem(slot, stack)) return 0;
+
+        FoodProperties food = stack.get(DataComponents.FOOD);
+        if (food != null) {
+            return Math.max(10, food.nutrition() * 10);
+        }
+
+        return 25;
     }
 }

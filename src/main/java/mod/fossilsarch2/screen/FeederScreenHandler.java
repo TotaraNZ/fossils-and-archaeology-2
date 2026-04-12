@@ -31,9 +31,19 @@ public class FeederScreenHandler extends AbstractContainerMenu {
         inventory.startOpen(playerInventory.player);
 
         // Meat slot — matches Revival ContainerFeeder (60, 62)
-        this.addSlot(new Slot(inventory, FeederBlockEntity.MEAT_SLOT, 60, 62));
+        this.addSlot(new Slot(inventory, FeederBlockEntity.MEAT_SLOT, 60, 62) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return FeederBlockEntity.acceptsItem(FeederBlockEntity.MEAT_SLOT, stack);
+            }
+        });
         // Veg slot — matches Revival ContainerFeeder (104, 62)
-        this.addSlot(new Slot(inventory, FeederBlockEntity.VEG_SLOT, 104, 62));
+        this.addSlot(new Slot(inventory, FeederBlockEntity.VEG_SLOT, 104, 62) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return FeederBlockEntity.acceptsItem(FeederBlockEntity.VEG_SLOT, stack);
+            }
+        });
 
         // Player inventory
         for (int row = 0; row < 3; row++)
@@ -59,7 +69,21 @@ public class FeederScreenHandler extends AbstractContainerMenu {
             if (slotIndex < 2) {
                 if (!this.moveItemStackTo(original, 2, 38, true)) return ItemStack.EMPTY;
             } else {
-                if (!this.moveItemStackTo(original, 0, 2, false)) return ItemStack.EMPTY;
+                if (FeederBlockEntity.acceptsItem(FeederBlockEntity.MEAT_SLOT, original)) {
+                    if (!this.moveItemStackTo(original, FeederBlockEntity.MEAT_SLOT, FeederBlockEntity.MEAT_SLOT + 1, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (FeederBlockEntity.acceptsItem(FeederBlockEntity.VEG_SLOT, original)) {
+                    if (!this.moveItemStackTo(original, FeederBlockEntity.VEG_SLOT, FeederBlockEntity.VEG_SLOT + 1, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (slotIndex < 29) {
+                    if (!this.moveItemStackTo(original, 29, 38, false)) return ItemStack.EMPTY;
+                } else if (slotIndex < 38) {
+                    if (!this.moveItemStackTo(original, 2, 29, false)) return ItemStack.EMPTY;
+                } else {
+                    return ItemStack.EMPTY;
+                }
             }
             if (original.isEmpty()) slot.setByPlayer(ItemStack.EMPTY);
             else slot.setChanged();

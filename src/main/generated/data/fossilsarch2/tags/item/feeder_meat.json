@@ -1,0 +1,13 @@
+{
+  "values": [
+    {
+      "id": "#minecraft:meat",
+      "required": false
+    },
+    {
+      "id": "#minecraft:fishes",
+      "required": false
+    },
+    "#fossilsarch2:dino_meat"
+  ]
+}

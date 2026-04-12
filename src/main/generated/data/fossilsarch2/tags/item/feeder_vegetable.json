@@ -1,0 +1,70 @@
+{
+  "values": [
+    {
+      "id": "#minecraft:cow_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:horse_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:pig_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:chicken_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:rabbit_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:sheep_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:llama_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:goat_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:turtle_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:sniffer_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:camel_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:panda_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:strider_food",
+      "required": false
+    },
+    {
+      "id": "#minecraft:zombie_horse_food",
+      "required": false
+    },
+    "minecraft:apple",
+    "minecraft:melon_slice",
+    "minecraft:sweet_berries",
+    "minecraft:glow_berries",
+    "minecraft:kelp",
+    "minecraft:dried_kelp",
+    "minecraft:bread",
+    "minecraft:cookie",
+    "minecraft:pumpkin_pie",
+    "fossilsarch2:fern_seed"
+  ]
+}
