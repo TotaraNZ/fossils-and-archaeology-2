@@ -27,6 +27,14 @@ base {
 	archivesName = project.archives_base_name
 }
 
+sourceSets {
+	main {
+		resources {
+			srcDir 'src/main/generated'
+		}
+	}
+}
+
 repositories {
 	maven {
 		name = "GeckoLib"
@@ -66,6 +74,29 @@ processResources {
 	inputs.property "version", project.version
 	filesMatching("fabric.mod.json") {
 		expand "version": inputs.properties.version
+	}
+}
+
+tasks.register("regenData") {
+	group = "fabric"
+	description = "Runs data generation and refreshes src/main/generated."
+	dependsOn("runDatagen")
+}
+
+tasks.register("checkGeneratedData") {
+	group = "verification"
+	description = "Fails if data generation would modify src/main/generated."
+	dependsOn("runDatagen")
+	doLast {
+		def stdout = new ByteArrayOutputStream()
+		exec {
+			commandLine "git", "status", "--short", "--", "src/main/generated"
+			standardOutput = stdout
+		}
+
+		if (stdout.toString().trim()) {
+			throw new GradleException("Generated data is out of date. Run ./gradlew regenData and commit src/main/generated.")
+		}
 	}
 }
 

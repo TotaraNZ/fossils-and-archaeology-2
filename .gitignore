@@ -7,7 +7,7 @@ bin/
 run/
 
 # Data generation output
-src/main/generated/
+src/main/generated/.cache/
 .apt_generated/
 
 # IDE
