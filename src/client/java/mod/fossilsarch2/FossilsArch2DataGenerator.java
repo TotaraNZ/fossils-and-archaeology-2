@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.advancements.Advancement;
@@ -56,6 +57,7 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
         pack.addProvider(ItemModelProvider::new);
         pack.addProvider(DinoRecipeProvider::new);
         pack.addProvider(FeederItemTagProvider::new);
+        pack.addProvider(BlockLootProvider::new);
         pack.addProvider(FossilsAdvancementProvider::new);
     }
 
@@ -269,6 +271,23 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
         @Override
         public String getName() {
             return "Fossils & Archaeology 2 Recipes";
+        }
+    }
+
+    private static class BlockLootProvider extends FabricBlockLootSubProvider {
+        protected BlockLootProvider(FabricPackOutput output,
+                CompletableFuture<HolderLookup.Provider> registriesFuture) {
+            super(output, registriesFuture);
+            excludeFromStrictValidation(ModBlocks.SUSPICIOUS_STONE);
+            excludeFromStrictValidation(ModBlocks.FERN);
+        }
+
+        @Override
+        public void generate() {
+            dropSelf(ModBlocks.ANALYSER);
+            dropSelf(ModBlocks.CULTIVATOR);
+            dropSelf(ModBlocks.FEEDER);
+            dropSelf(ModBlocks.WORKTABLE);
         }
     }
 

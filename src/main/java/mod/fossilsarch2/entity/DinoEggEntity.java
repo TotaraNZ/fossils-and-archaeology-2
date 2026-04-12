@@ -163,18 +163,21 @@ public class DinoEggEntity extends Entity implements GeoEntity {
         baby.snapTo(getX(), getY(), getZ(), getYRot(), 0);
         baby.setDinoAge(0);
 
+        ServerPlayer serverPlayerOwner = null;
         if (ownerUuid != null) {
             Player owner = serverLevel.getPlayerInAnyDimension(ownerUuid);
             if (owner != null) {
                 baby.setTamedBy(owner);
                 if (owner instanceof ServerPlayer serverPlayer) {
-                    ModAdvancements.grant(serverPlayer, ModAdvancements.HATCH_DINOSAUR,
-                            ModAdvancements.HATCHED_DINOSAUR_CRITERION);
+                    serverPlayerOwner = serverPlayer;
                 }
             }
         }
 
-        serverLevel.addFreshEntity(baby);
+        if (serverLevel.addFreshEntity(baby) && serverPlayerOwner != null) {
+            ModAdvancements.grant(serverPlayerOwner, ModAdvancements.HATCH_DINOSAUR,
+                    ModAdvancements.HATCHED_DINOSAUR_CRITERION);
+        }
         discard();
     }
 
