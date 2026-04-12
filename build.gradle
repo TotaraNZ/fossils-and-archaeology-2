@@ -21,6 +21,12 @@ gitVersioning.apply {
 		version = '${commit.short}-SNAPSHOT'
 	}
 }
+
+def releaseVersion = providers.gradleProperty("releaseVersion").orNull
+if (releaseVersion) {
+	version = releaseVersion.startsWith("v") ? releaseVersion.substring(1) : releaseVersion
+}
+
 group = project.maven_group
 
 base {
