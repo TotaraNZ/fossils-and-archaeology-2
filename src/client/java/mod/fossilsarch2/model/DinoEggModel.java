@@ -2,9 +2,9 @@ package mod.fossilsarch2.model;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.entity.DinoEggEntity;
-import net.minecraft.util.Identifier;
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.renderer.base.GeoRenderState;
+import net.minecraft.resources.Identifier;
+import com.geckolib.model.GeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
 
 public class DinoEggModel extends GeoModel<DinoEggEntity> {
 
@@ -16,16 +16,16 @@ public class DinoEggModel extends GeoModel<DinoEggEntity> {
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
-        return Identifier.of(FossilsArch2Mod.MOD_ID, "dino_egg");
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg");
     }
 
     @Override
     public Identifier getTextureResource(GeoRenderState renderState) {
-        return Identifier.of(FossilsArch2Mod.MOD_ID, "textures/entity/egg/" + currentDinoId + ".png");
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/entity/egg/" + currentDinoId + ".png");
     }
 
     @Override
     public Identifier getAnimationResource(DinoEggEntity animatable) {
-        return Identifier.of(FossilsArch2Mod.MOD_ID, "dino_egg");
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg");
     }
 }

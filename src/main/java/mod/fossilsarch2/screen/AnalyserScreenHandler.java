@@ -2,36 +2,36 @@ package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.block.entity.AnalyserBlockEntity;
 import mod.fossilsarch2.registry.ModScreenHandlers;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 
-public class AnalyserScreenHandler extends ScreenHandler {
+public class AnalyserScreenHandler extends AbstractContainerMenu {
 
-    private final Inventory inventory;
-    private final PropertyDelegate propertyDelegate;
+    private final Container inventory;
+    private final ContainerData propertyDelegate;
 
     // Client constructor
-    public AnalyserScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(AnalyserBlockEntity.INVENTORY_SIZE),
-                new ArrayPropertyDelegate(2));
+    public AnalyserScreenHandler(int syncId, Inventory playerInventory) {
+        this(syncId, playerInventory, new SimpleContainer(AnalyserBlockEntity.INVENTORY_SIZE),
+                new SimpleContainerData(2));
     }
 
     // Server constructor
-    public AnalyserScreenHandler(int syncId, PlayerInventory playerInventory,
-            Inventory inventory, PropertyDelegate propertyDelegate) {
+    public AnalyserScreenHandler(int syncId, Inventory playerInventory,
+            Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.ANALYSER, syncId);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
 
-        checkSize(inventory, AnalyserBlockEntity.INVENTORY_SIZE);
-        inventory.onOpen(playerInventory.player);
+        checkContainerSize(inventory, AnalyserBlockEntity.INVENTORY_SIZE);
+        inventory.startOpen(playerInventory.player);
 
         // 3x3 input grid (slots 0-8) — matches Revival ContainerAnalyzer
         for (int row = 0; row < 3; row++) {
@@ -60,7 +60,7 @@ public class AnalyserScreenHandler extends ScreenHandler {
             addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
         }
 
-        addProperties(propertyDelegate);
+        addDataSlots(propertyDelegate);
     }
 
     public int getProcessProgress() {
@@ -80,30 +80,30 @@ public class AnalyserScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotIndex);
 
-        if (slot.hasStack()) {
-            ItemStack originalStack = slot.getStack();
+        if (slot.hasItem()) {
+            ItemStack originalStack = slot.getItem();
             newStack = originalStack.copy();
 
             int analyserSlots = AnalyserBlockEntity.INVENTORY_SIZE;
 
             if (slotIndex < analyserSlots) {
-                if (!insertItem(originalStack, analyserSlots, analyserSlots + 36, true)) {
+                if (!moveItemStackTo(originalStack, analyserSlots, analyserSlots + 36, true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
-                if (!insertItem(originalStack, 0, 9, false)) {
+                if (!moveItemStackTo(originalStack, 0, 9, false)) {
                     return ItemStack.EMPTY;
                 }
             }
 
             if (originalStack.isEmpty()) {
-                slot.setStack(ItemStack.EMPTY);
+                slot.setByPlayer(ItemStack.EMPTY);
             } else {
-                slot.markDirty();
+                slot.setChanged();
             }
         }
 
@@ -111,7 +111,7 @@ public class AnalyserScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        return inventory.canPlayerUse(player);
+    public boolean stillValid(Player player) {
+        return inventory.stillValid(player);
     }
 }

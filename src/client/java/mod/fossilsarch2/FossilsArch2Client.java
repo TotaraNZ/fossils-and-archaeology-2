@@ -18,13 +18,11 @@ import mod.fossilsarch2.screen.WorktableScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 
 @Environment(EnvType.CLIENT)
 public class FossilsArch2Client implements ClientModInitializer {
@@ -41,21 +39,18 @@ public class FossilsArch2Client implements ClientModInitializer {
 		// Egg entity renderer
 		EntityRendererRegistry.register(ModEntities.DINO_EGG, DinoEggRenderer::new);
 
-		// Block render layers
-		BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.FERN, RenderLayer.getCutout());
-
 		// Screen registrations
-		HandledScreens.register(ModScreenHandlers.ANALYSER, AnalyserScreen::new);
-		HandledScreens.register(ModScreenHandlers.CULTIVATOR, CultivatorScreen::new);
-		HandledScreens.register(ModScreenHandlers.FEEDER, FeederScreen::new);
-		HandledScreens.register(ModScreenHandlers.WORKTABLE, WorktableScreen::new);
+		MenuScreens.register(ModScreenHandlers.ANALYSER, AnalyserScreen::new);
+		MenuScreens.register(ModScreenHandlers.CULTIVATOR, CultivatorScreen::new);
+		MenuScreens.register(ModScreenHandlers.FEEDER, FeederScreen::new);
+		MenuScreens.register(ModScreenHandlers.WORKTABLE, WorktableScreen::new);
 
 		// Dinopedia packet receiver
 		ClientPlayNetworking.registerGlobalReceiver(DinopediaPayload.ID, (payload, context) -> {
 			int entityId = payload.entityId();
 			context.client().execute(() -> {
-				if (context.client().world == null) return;
-				Entity entity = context.client().world.getEntityById(entityId);
+				if (context.client().level == null) return;
+				Entity entity = context.client().level.getEntity(entityId);
 				if (entity instanceof DinosaurEntity dino) {
 					context.client().setScreen(DinopediaScreen.forDinosaur(dino));
 				} else if (entity instanceof DinoEggEntity egg) {

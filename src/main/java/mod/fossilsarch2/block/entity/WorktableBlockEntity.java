@@ -3,25 +3,25 @@ package mod.fossilsarch2.block.entity;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import mod.fossilsarch2.registry.ModItems;
 import mod.fossilsarch2.screen.WorktableScreenHandler;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Map;
 
@@ -29,7 +29,7 @@ import java.util.Map;
  * Worktable repairs broken ancient artifacts using relics as fuel.
  * Same fuel-based pattern as the cultivator.
  */
-public class WorktableBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, Inventory {
+public class WorktableBlockEntity extends BlockEntity implements MenuProvider, Container {
 
     public static final int INPUT_SLOT = 0;
     public static final int FUEL_SLOT = 1;
@@ -43,12 +43,12 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
             ModItems.BROKEN_HELMET, ModItems.ANCIENT_HELMET
     );
 
-    private final DefaultedList<ItemStack> items = DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private int cookTime = 0;
     private int burnTime = 0;
     private int currentItemBurnTime = 0;
 
-    private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
+    private final ContainerData propertyDelegate = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
@@ -70,7 +70,7 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
         }
 
         @Override
-        public int size() { return 4; }
+        public int getCount() { return 4; }
     };
 
     public WorktableBlockEntity(BlockPos pos, BlockState state) {
@@ -78,50 +78,50 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
     }
 
     // --- Inventory ---
-    @Override public int size() { return INVENTORY_SIZE; }
+    @Override public int getContainerSize() { return INVENTORY_SIZE; }
     @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
-    @Override public ItemStack getStack(int slot) { return items.get(slot); }
-    @Override public ItemStack removeStack(int slot, int amount) {
-        ItemStack result = Inventories.splitStack(items, slot, amount);
-        if (!result.isEmpty()) markDirty();
+    @Override public ItemStack getItem(int slot) { return items.get(slot); }
+    @Override public ItemStack removeItem(int slot, int amount) {
+        ItemStack result = ContainerHelper.removeItem(items, slot, amount);
+        if (!result.isEmpty()) setChanged();
         return result;
     }
-    @Override public ItemStack removeStack(int slot) { return Inventories.removeStack(items, slot); }
-    @Override public void setStack(int slot, ItemStack stack) { items.set(slot, stack); markDirty(); }
-    @Override public boolean canPlayerUse(PlayerEntity player) { return Inventory.canPlayerUse(this, player); }
-    @Override public void clear() { items.clear(); }
+    @Override public ItemStack removeItemNoUpdate(int slot) { return ContainerHelper.takeItem(items, slot); }
+    @Override public void setItem(int slot, ItemStack stack) { items.set(slot, stack); setChanged(); }
+    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    @Override public void clearContent() { items.clear(); }
 
     // --- NBT ---
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.writeNbt(nbt, registries);
-        Inventories.writeNbt(nbt, items, registries);
-        nbt.putInt("CookTime", cookTime);
-        nbt.putInt("BurnTime", burnTime);
-        nbt.putInt("CurrentItemBurnTime", currentItemBurnTime);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, items);
+        output.putInt("CookTime", cookTime);
+        output.putInt("BurnTime", burnTime);
+        output.putInt("CurrentItemBurnTime", currentItemBurnTime);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.readNbt(nbt, registries);
-        Inventories.readNbt(nbt, items, registries);
-        cookTime = nbt.getInt("CookTime", 0);
-        burnTime = nbt.getInt("BurnTime", 0);
-        currentItemBurnTime = nbt.getInt("CurrentItemBurnTime", 0);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input, items);
+        cookTime = input.getIntOr("CookTime", 0);
+        burnTime = input.getIntOr("BurnTime", 0);
+        currentItemBurnTime = input.getIntOr("CurrentItemBurnTime", 0);
     }
 
     // --- Screen ---
     @Override
-    public Text getDisplayName() { return Text.translatable("block.fossilsarch2.worktable"); }
+    public Component getDisplayName() { return Component.translatable("block.fossilsarch2.worktable"); }
 
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new WorktableScreenHandler(syncId, playerInventory, this, propertyDelegate);
     }
 
     // --- Tick ---
-    public static void tick(World world, BlockPos pos, BlockState state, WorktableBlockEntity entity) {
-        if (world.isClient()) return;
+    public static void tick(Level world, BlockPos pos, BlockState state, WorktableBlockEntity entity) {
+        if (world.isClientSide()) return;
 
         boolean wasBurning = entity.burnTime > 0;
         boolean dirty = false;
@@ -137,7 +137,7 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
                 if (fuelTime > 0) {
                     entity.burnTime = fuelTime;
                     entity.currentItemBurnTime = fuelTime;
-                    entity.items.get(FUEL_SLOT).decrement(1);
+                    entity.items.get(FUEL_SLOT).shrink(1);
                     dirty = true;
                 }
             }
@@ -159,11 +159,11 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
         }
 
         boolean isBurning = entity.burnTime > 0;
-        if (wasBurning != isBurning && state.contains(mod.fossilsarch2.block.WorktableBlock.LIT)) {
-            world.setBlockState(pos, state.with(mod.fossilsarch2.block.WorktableBlock.LIT, isBurning), Block.NOTIFY_ALL);
+        if (wasBurning != isBurning && state.hasProperty(mod.fossilsarch2.block.WorktableBlock.LIT)) {
+            world.setBlock(pos, state.setValue(mod.fossilsarch2.block.WorktableBlock.LIT, isBurning), Block.UPDATE_ALL);
         }
 
-        if (dirty) entity.markDirty();
+        if (dirty) entity.setChanged();
     }
 
     private boolean canSmelt() {
@@ -173,7 +173,7 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
         if (result == null) return false;
         ItemStack output = items.get(OUTPUT_SLOT);
         if (output.isEmpty()) return true;
-        return output.isOf(result) && output.getCount() < output.getMaxCount();
+        return output.is(result) && output.getCount() < output.getMaxStackSize();
     }
 
     private void smeltItem() {
@@ -185,16 +185,16 @@ public class WorktableBlockEntity extends BlockEntity implements NamedScreenHand
         ItemStack output = items.get(OUTPUT_SLOT);
         if (output.isEmpty()) {
             items.set(OUTPUT_SLOT, new ItemStack(result, 1));
-        } else if (output.isOf(result)) {
-            output.increment(1);
+        } else if (output.is(result)) {
+            output.grow(1);
         }
-        input.decrement(1);
+        input.shrink(1);
     }
 
     private static int getFuelTime(ItemStack stack) {
         if (stack.isEmpty()) return 0;
         // Only relics can fuel the worktable
-        if (stack.isOf(ModItems.RELIC)) return 300;
+        if (stack.is(ModItems.RELIC)) return 300;
         return 0;
     }
 }

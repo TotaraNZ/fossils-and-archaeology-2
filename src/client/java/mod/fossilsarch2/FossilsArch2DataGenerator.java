@@ -12,29 +12,38 @@ import mod.fossilsarch2.registry.ModItems;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.AdvancementFrame;
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.advancement.criterion.ImpossibleCriterion;
-import net.minecraft.advancement.criterion.InventoryChangedCriterion;
-import net.minecraft.advancement.criterion.TickCriterion;
-import net.minecraft.client.data.BlockStateModelGenerator;
-import net.minecraft.client.data.ItemModelGenerator;
-import net.minecraft.client.data.Models;
-import net.minecraft.data.recipe.RecipeExporter;
-import net.minecraft.data.recipe.RecipeGenerator;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementType;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.criterion.ImpossibleTrigger;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.PlayerTrigger;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.ItemLike;
 
 public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
     @Override
@@ -49,178 +58,181 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
     // --- Item Models ---
 
     private static class ItemModelProvider extends FabricModelProvider {
-        public ItemModelProvider(FabricDataOutput output) {
+        public ItemModelProvider(FabricPackOutput output) {
             super(output);
         }
 
         @Override
-        public void generateItemModels(ItemModelGenerator generator) {
+        public void generateItemModels(ItemModelGenerators generator) {
             for (Item item : ModItems.ALL.values()) {
-                generator.register(item, Models.GENERATED);
+                generator.generateFlatItem(item, ModelTemplates.FLAT_ITEM);
             }
         }
 
         @Override
-        public void generateBlockStateModels(BlockStateModelGenerator generator) {
+        public void generateBlockStateModels(BlockModelGenerators generator) {
         }
     }
 
     // --- Recipes ---
 
     private static class DinoRecipeProvider extends FabricRecipeProvider {
-        public DinoRecipeProvider(FabricDataOutput output,
-                CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+        public DinoRecipeProvider(FabricPackOutput output,
+                CompletableFuture<HolderLookup.Provider> registriesFuture) {
             super(output, registriesFuture);
         }
 
         @Override
-        protected RecipeGenerator getRecipeGenerator(RegistryWrapper.WrapperLookup registries, RecipeExporter exporter) {
-            return new RecipeGenerator(registries, exporter) {
+        protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+            return new RecipeProvider(registries, output) {
                 @Override
-                public void generate() {
-                    createShaped(RecipeCategory.DECORATIONS, ModBlocks.ANALYSER)
+                public void buildRecipes() {
+                    shaped(RecipeCategory.DECORATIONS, ModBlocks.ANALYSER)
                             .pattern("IRI")
                             .pattern("IBI")
-                            .input('I', Items.IRON_INGOT)
-                            .input('R', ModItems.RELIC)
-                            .input('B', ModItems.BIO_FOSSIL)
-                            .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
-                            .offerTo(exporter);
+                            .define('I', Items.IRON_INGOT)
+                            .define('R', ModItems.RELIC)
+                            .define('B', ModItems.BIO_FOSSIL)
+                            .unlockedBy("has_bio_fossil", has(ModItems.BIO_FOSSIL))
+                            .save(output);
 
-                    createShaped(RecipeCategory.DECORATIONS, ModBlocks.CULTIVATOR)
+                    shaped(RecipeCategory.DECORATIONS, ModBlocks.CULTIVATOR)
                             .pattern("GDG")
                             .pattern("GWG")
                             .pattern("III")
-                            .input('G', Items.GLASS)
-                            .input('D', Items.GREEN_DYE)
-                            .input('W', Items.WATER_BUCKET)
-                            .input('I', Items.IRON_INGOT)
-                            .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
-                            .offerTo(exporter);
+                            .define('G', Items.GLASS)
+                            .define('D', Items.GREEN_DYE)
+                            .define('W', Items.WATER_BUCKET)
+                            .define('I', Items.IRON_INGOT)
+                            .unlockedBy("has_bio_fossil", has(ModItems.BIO_FOSSIL))
+                            .save(output);
 
-                    createShaped(RecipeCategory.DECORATIONS, ModBlocks.WORKTABLE)
+                    shaped(RecipeCategory.DECORATIONS, ModBlocks.WORKTABLE)
                             .pattern("P")
                             .pattern("C")
-                            .input('P', Items.PAPER)
-                            .input('C', Items.CRAFTING_TABLE)
-                            .criterion("has_relic", conditionsFromItem(ModItems.RELIC))
-                            .offerTo(exporter);
+                            .define('P', Items.PAPER)
+                            .define('C', Items.CRAFTING_TABLE)
+                            .unlockedBy("has_relic", has(ModItems.RELIC))
+                            .save(output);
 
-                    createShaped(RecipeCategory.DECORATIONS, ModBlocks.FEEDER)
+                    shaped(RecipeCategory.DECORATIONS, ModBlocks.FEEDER)
                             .pattern("IGI")
                             .pattern("TBS")
                             .pattern("SSS")
-                            .input('I', Items.IRON_INGOT)
-                            .input('G', Items.GLASS)
-                            .input('T', Items.STONE_BUTTON)
-                            .input('B', Items.BUCKET)
-                            .input('S', Items.STONE)
-                            .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
-                            .offerTo(exporter);
+                            .define('I', Items.IRON_INGOT)
+                            .define('G', Items.GLASS)
+                            .define('T', Items.STONE_BUTTON)
+                            .define('B', Items.BUCKET)
+                            .define('S', Items.STONE)
+                            .unlockedBy("has_bio_fossil", has(ModItems.BIO_FOSSIL))
+                            .save(output);
 
-                    createShapeless(RecipeCategory.COMBAT, ModItems.SCARAB_SWORD)
-                            .input(Items.GOLDEN_SWORD)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_sword_from_gold"));
+                    shapeless(RecipeCategory.COMBAT, ModItems.SCARAB_SWORD)
+                            .requires(Items.GOLDEN_SWORD)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_sword_from_gold"));
 
-                    createShapeless(RecipeCategory.COMBAT, ModItems.SCARAB_SWORD)
-                            .input(Items.DIAMOND_SWORD)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_sword_from_diamond"));
+                    shapeless(RecipeCategory.COMBAT, ModItems.SCARAB_SWORD)
+                            .requires(Items.DIAMOND_SWORD)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_sword_from_diamond"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_AXE)
-                            .input(Items.GOLDEN_AXE)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_axe_from_gold"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_AXE)
+                            .requires(Items.GOLDEN_AXE)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_axe_from_gold"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_AXE)
-                            .input(Items.DIAMOND_AXE)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_axe_from_diamond"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_AXE)
+                            .requires(Items.DIAMOND_AXE)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_axe_from_diamond"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_PICKAXE)
-                            .input(Items.GOLDEN_PICKAXE)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_pickaxe_from_gold"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_PICKAXE)
+                            .requires(Items.GOLDEN_PICKAXE)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_pickaxe_from_gold"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_PICKAXE)
-                            .input(Items.DIAMOND_PICKAXE)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_pickaxe_from_diamond"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_PICKAXE)
+                            .requires(Items.DIAMOND_PICKAXE)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_pickaxe_from_diamond"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_SHOVEL)
-                            .input(Items.GOLDEN_SHOVEL)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_shovel_from_gold"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_SHOVEL)
+                            .requires(Items.GOLDEN_SHOVEL)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_shovel_from_gold"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_SHOVEL)
-                            .input(Items.DIAMOND_SHOVEL)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_shovel_from_diamond"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_SHOVEL)
+                            .requires(Items.DIAMOND_SHOVEL)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_shovel_from_diamond"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_HOE)
-                            .input(Items.GOLDEN_HOE)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_hoe_from_gold"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_HOE)
+                            .requires(Items.GOLDEN_HOE)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_hoe_from_gold"));
 
-                    createShapeless(RecipeCategory.TOOLS, ModItems.SCARAB_HOE)
-                            .input(Items.DIAMOND_HOE)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_scarab_gem", conditionsFromItem(ModItems.SCARAB_GEM))
-                            .offerTo(exporter, recipeKey("scarab_hoe_from_diamond"));
+                    shapeless(RecipeCategory.TOOLS, ModItems.SCARAB_HOE)
+                            .requires(Items.DIAMOND_HOE)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_scarab_gem", has(ModItems.SCARAB_GEM))
+                            .save(output, recipeKey("scarab_hoe_from_diamond"));
 
-                    createShapeless(RecipeCategory.COMBAT, ModItems.ANCIENT_SWORD)
-                            .input(ModItems.BROKEN_SWORD)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_broken_sword", conditionsFromItem(ModItems.BROKEN_SWORD))
-                            .offerTo(exporter);
+                    shapeless(RecipeCategory.COMBAT, ModItems.ANCIENT_SWORD)
+                            .requires(ModItems.BROKEN_SWORD)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_broken_sword", has(ModItems.BROKEN_SWORD))
+                            .save(output);
 
-                    createShapeless(RecipeCategory.COMBAT, ModItems.ANCIENT_HELMET)
-                            .input(ModItems.BROKEN_HELMET)
-                            .input(ModItems.SCARAB_GEM)
-                            .criterion("has_broken_helmet", conditionsFromItem(ModItems.BROKEN_HELMET))
-                            .offerTo(exporter);
+                    shapeless(RecipeCategory.COMBAT, ModItems.ANCIENT_HELMET)
+                            .requires(ModItems.BROKEN_HELMET)
+                            .requires(ModItems.SCARAB_GEM)
+                            .unlockedBy("has_broken_helmet", has(ModItems.BROKEN_HELMET))
+                            .save(output);
 
-                    createShapeless(RecipeCategory.MISC, ModItems.DINOPEDIA)
-                            .input(Items.BOOK)
-                            .input(ModItems.BIO_FOSSIL)
-                            .criterion("has_bio_fossil", conditionsFromItem(ModItems.BIO_FOSSIL))
-                            .offerTo(exporter);
+                    shapeless(RecipeCategory.MISC, ModItems.DINOPEDIA)
+                            .requires(Items.BOOK)
+                            .requires(ModItems.BIO_FOSSIL)
+                            .unlockedBy("has_bio_fossil", has(ModItems.BIO_FOSSIL))
+                            .save(output);
 
                     for (Dinosaur d : DinosaurRegistry.all().values()) {
-                        Item rawMeat = Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, d.id + "_meat"));
-                        Item cookedMeat = Registries.ITEM.get(
-                                Identifier.of(FossilsArch2Mod.MOD_ID, d.id + "_cooked_meat"));
+                        Item rawMeat = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, d.id + "_meat"));
+                        Item cookedMeat = BuiltInRegistries.ITEM.getValue(
+                                Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, d.id + "_cooked_meat"));
 
                         if (rawMeat == Items.AIR || cookedMeat == Items.AIR) continue;
 
-                        offerSmelting(List.of(rawMeat), RecipeCategory.FOOD, cookedMeat, 0.35f, 200, d.id);
+                        SimpleCookingRecipeBuilder.smelting(Ingredient.of(rawMeat), RecipeCategory.FOOD,
+                                        CookingBookCategory.FOOD, cookedMeat, 0.35f, 200)
+                                .unlockedBy("has_" + d.id + "_meat", has(rawMeat))
+                                .save(output, recipeKey(d.id + "_cooked_meat_from_smelting"));
 
-                        offerFoodCookingRecipe("smoking",
-                                net.minecraft.recipe.RecipeSerializer.SMOKING,
-                                net.minecraft.recipe.SmokingRecipe::new,
-                                100, rawMeat, cookedMeat, 0.35f);
+                        SimpleCookingRecipeBuilder.smoking(Ingredient.of(rawMeat), RecipeCategory.FOOD,
+                                        cookedMeat, 0.35f, 100)
+                                .unlockedBy("has_" + d.id + "_meat", has(rawMeat))
+                                .save(output, recipeKey(d.id + "_cooked_meat_from_smoking"));
 
-                        offerFoodCookingRecipe("campfire_cooking",
-                                net.minecraft.recipe.RecipeSerializer.CAMPFIRE_COOKING,
-                                net.minecraft.recipe.CampfireCookingRecipe::new,
-                                600, rawMeat, cookedMeat, 0.35f);
+                        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(rawMeat), RecipeCategory.FOOD,
+                                        cookedMeat, 0.35f, 600)
+                                .unlockedBy("has_" + d.id + "_meat", has(rawMeat))
+                                .save(output, recipeKey(d.id + "_cooked_meat_from_campfire_cooking"));
                     }
                 }
 
-                private net.minecraft.registry.RegistryKey<net.minecraft.recipe.Recipe<?>> recipeKey(String path) {
-                    return net.minecraft.registry.RegistryKey.of(
-                            net.minecraft.registry.RegistryKeys.RECIPE,
-                            Identifier.of(FossilsArch2Mod.MOD_ID, path));
+                private ResourceKey<Recipe<?>> recipeKey(String path) {
+                    return ResourceKey.create(
+                            Registries.RECIPE,
+                            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path));
                 }
             };
         }
@@ -234,94 +246,95 @@ public class FossilsArch2DataGenerator implements DataGeneratorEntrypoint {
     // --- Advancements ---
 
     private static class FossilsAdvancementProvider extends FabricAdvancementProvider {
-        private static final Identifier BACKGROUND = Identifier.of("minecraft",
+        private static final Identifier BACKGROUND = Identifier.fromNamespaceAndPath("minecraft",
                 "textures/gui/advancements/backgrounds/stone.png");
 
-        protected FossilsAdvancementProvider(FabricDataOutput output,
-                CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+        protected FossilsAdvancementProvider(FabricPackOutput output,
+                CompletableFuture<HolderLookup.Provider> registriesFuture) {
             super(output, registriesFuture);
         }
 
         @Override
-        public void generateAdvancement(RegistryWrapper.WrapperLookup registryLookup, Consumer<AdvancementEntry> consumer) {
-            AdvancementEntry root = Advancement.Builder.create()
+        public void generateAdvancement(HolderLookup.Provider registryLookup, Consumer<AdvancementHolder> consumer) {
+            AdvancementHolder root = Advancement.Builder.advancement()
                     .display(ModBlocks.SUSPICIOUS_STONE,
-                            Text.translatable("advancement.fossilsarch2.root.title"),
-                            Text.translatable("advancement.fossilsarch2.root.description"),
+                            Component.translatable("advancement.fossilsarch2.root.title"),
+                            Component.translatable("advancement.fossilsarch2.root.description"),
                             BACKGROUND,
-                            AdvancementFrame.TASK,
+                            AdvancementType.TASK,
                             false,
                             false,
                             false)
-                    .criterion("entered_world", TickCriterion.Conditions.createTick())
-                    .build(consumer, ModAdvancements.ROOT.toString());
+                    .addCriterion("entered_world", PlayerTrigger.TriggerInstance.located(
+                            java.util.Optional.empty()))
+                    .save(consumer, ModAdvancements.ROOT.toString());
 
-            AdvancementEntry discoverBioFossil = Advancement.Builder.create()
+            AdvancementHolder discoverBioFossil = Advancement.Builder.advancement()
                     .parent(root)
                     .display(ModItems.BIO_FOSSIL,
-                            Text.translatable("advancement.fossilsarch2.discover_bio_fossil.title"),
-                            Text.translatable("advancement.fossilsarch2.discover_bio_fossil.description"),
+                            Component.translatable("advancement.fossilsarch2.discover_bio_fossil.title"),
+                            Component.translatable("advancement.fossilsarch2.discover_bio_fossil.description"),
                             null,
-                            AdvancementFrame.TASK,
+                            AdvancementType.TASK,
                             true,
                             true,
                             false)
-                    .criterion("has_bio_fossil", InventoryChangedCriterion.Conditions.items(ModItems.BIO_FOSSIL))
-                    .build(consumer, ModAdvancements.DISCOVER_BIO_FOSSIL.toString());
+                    .addCriterion("has_bio_fossil", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.BIO_FOSSIL))
+                    .save(consumer, ModAdvancements.DISCOVER_BIO_FOSSIL.toString());
 
-            AdvancementEntry extractDna = Advancement.Builder.create()
+            AdvancementHolder extractDna = Advancement.Builder.advancement()
                     .parent(discoverBioFossil)
                     .display(ModItems.DINOPEDIA,
-                            Text.translatable("advancement.fossilsarch2.extract_dna.title"),
-                            Text.translatable("advancement.fossilsarch2.extract_dna.description"),
+                            Component.translatable("advancement.fossilsarch2.extract_dna.title"),
+                            Component.translatable("advancement.fossilsarch2.extract_dna.description"),
                             null,
-                            AdvancementFrame.TASK,
+                            AdvancementType.TASK,
                             true,
                             true,
                             false)
-                    .criterion("has_dna", InventoryChangedCriterion.Conditions.items(getDnaItems()))
-                    .build(consumer, ModAdvancements.EXTRACT_DNA.toString());
+                    .addCriterion("has_dna", InventoryChangeTrigger.TriggerInstance.hasItems(getDnaItems()))
+                    .save(consumer, ModAdvancements.EXTRACT_DNA.toString());
 
-            AdvancementEntry cultivateEgg = Advancement.Builder.create()
+            AdvancementHolder cultivateEgg = Advancement.Builder.advancement()
                     .parent(extractDna)
                     .display(Items.EGG,
-                            Text.translatable("advancement.fossilsarch2.cultivate_egg.title"),
-                            Text.translatable("advancement.fossilsarch2.cultivate_egg.description"),
+                            Component.translatable("advancement.fossilsarch2.cultivate_egg.title"),
+                            Component.translatable("advancement.fossilsarch2.cultivate_egg.description"),
                             null,
-                            AdvancementFrame.TASK,
+                            AdvancementType.TASK,
                             true,
                             true,
                             false)
-                    .criterion("has_egg", InventoryChangedCriterion.Conditions.items(getEggItems()))
-                    .build(consumer, ModAdvancements.CULTIVATE_EGG.toString());
+                    .addCriterion("has_egg", InventoryChangeTrigger.TriggerInstance.hasItems(getEggItems()))
+                    .save(consumer, ModAdvancements.CULTIVATE_EGG.toString());
 
-            Advancement.Builder.create()
+            Advancement.Builder.advancement()
                     .parent(cultivateEgg)
                     .display(ModItems.DINOPEDIA,
-                            Text.translatable("advancement.fossilsarch2.hatch_dinosaur.title"),
-                            Text.translatable("advancement.fossilsarch2.hatch_dinosaur.description"),
+                            Component.translatable("advancement.fossilsarch2.hatch_dinosaur.title"),
+                            Component.translatable("advancement.fossilsarch2.hatch_dinosaur.description"),
                             null,
-                            AdvancementFrame.GOAL,
+                            AdvancementType.GOAL,
                             true,
                             true,
                             false)
-                    .criterion(ModAdvancements.HATCHED_DINOSAUR_CRITERION,
-                            Criteria.IMPOSSIBLE.create(new ImpossibleCriterion.Conditions()))
-                    .build(consumer, ModAdvancements.HATCH_DINOSAUR.toString());
+                    .addCriterion(ModAdvancements.HATCHED_DINOSAUR_CRITERION,
+                            CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
+                    .save(consumer, ModAdvancements.HATCH_DINOSAUR.toString());
         }
 
-        private static ItemConvertible[] getDnaItems() {
+        private static ItemLike[] getDnaItems() {
             return DinosaurRegistry.all().values().stream()
-                    .map(dino -> Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, dino.id + "_dna")))
+                    .map(dino -> BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dino.id + "_dna")))
                     .filter(item -> item != Items.AIR)
-                    .toArray(ItemConvertible[]::new);
+                    .toArray(ItemLike[]::new);
         }
 
-        private static ItemConvertible[] getEggItems() {
+        private static ItemLike[] getEggItems() {
             return DinosaurRegistry.all().values().stream()
-                    .map(dino -> Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, dino.id + "_egg")))
+                    .map(dino -> BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dino.id + "_egg")))
                     .filter(item -> item != Items.AIR)
-                    .toArray(ItemConvertible[]::new);
+                    .toArray(ItemLike[]::new);
         }
     }
 }

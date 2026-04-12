@@ -2,33 +2,33 @@ package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.registry.ModScreenHandlers;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 
-public class FeederScreenHandler extends ScreenHandler {
+public class FeederScreenHandler extends AbstractContainerMenu {
 
-    private final Inventory inventory;
-    private final PropertyDelegate propertyDelegate;
+    private final Container inventory;
+    private final ContainerData propertyDelegate;
 
-    public FeederScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(FeederBlockEntity.INVENTORY_SIZE), new ArrayPropertyDelegate(3));
+    public FeederScreenHandler(int syncId, Inventory playerInventory) {
+        this(syncId, playerInventory, new SimpleContainer(FeederBlockEntity.INVENTORY_SIZE), new SimpleContainerData(3));
     }
 
-    public FeederScreenHandler(int syncId, PlayerInventory playerInventory,
-                                Inventory inventory, PropertyDelegate propertyDelegate) {
+    public FeederScreenHandler(int syncId, Inventory playerInventory,
+                                Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.FEEDER, syncId);
-        checkSize(inventory, FeederBlockEntity.INVENTORY_SIZE);
+        checkContainerSize(inventory, FeederBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
 
-        inventory.onOpen(playerInventory.player);
+        inventory.startOpen(playerInventory.player);
 
         // Meat slot — matches Revival ContainerFeeder (60, 62)
         this.addSlot(new Slot(inventory, FeederBlockEntity.MEAT_SLOT, 60, 62));
@@ -42,7 +42,7 @@ public class FeederScreenHandler extends ScreenHandler {
         for (int col = 0; col < 9; col++)
             this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
 
-        this.addProperties(propertyDelegate);
+        this.addDataSlots(propertyDelegate);
     }
 
     public int getMeatLevel() { return propertyDelegate.get(0); }
@@ -50,23 +50,23 @@ public class FeederScreenHandler extends ScreenHandler {
     public int getMaxFood() { int m = propertyDelegate.get(2); return m > 0 ? m : 1; }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotIndex);
-        if (slot.hasStack()) {
-            ItemStack original = slot.getStack();
+        if (slot.hasItem()) {
+            ItemStack original = slot.getItem();
             newStack = original.copy();
             if (slotIndex < 2) {
-                if (!this.insertItem(original, 2, 38, true)) return ItemStack.EMPTY;
+                if (!this.moveItemStackTo(original, 2, 38, true)) return ItemStack.EMPTY;
             } else {
-                if (!this.insertItem(original, 0, 2, false)) return ItemStack.EMPTY;
+                if (!this.moveItemStackTo(original, 0, 2, false)) return ItemStack.EMPTY;
             }
-            if (original.isEmpty()) slot.setStack(ItemStack.EMPTY);
-            else slot.markDirty();
+            if (original.isEmpty()) slot.setByPlayer(ItemStack.EMPTY);
+            else slot.setChanged();
         }
         return newStack;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) { return this.inventory.canPlayerUse(player); }
+    public boolean stillValid(Player player) { return this.inventory.stillValid(player); }
 }

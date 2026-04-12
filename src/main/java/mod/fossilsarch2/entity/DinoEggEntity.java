@@ -6,89 +6,90 @@ import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.registry.DinosaurRegistry;
 import mod.fossilsarch2.registry.ModEntities;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import mod.fossilsarch2.network.DinopediaPayload;
 import mod.fossilsarch2.registry.ModAdvancements;
 import mod.fossilsarch2.registry.ModItems;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animatable.manager.AnimatableManager;
-import software.bernie.geckolib.animatable.processing.AnimationController;
-import software.bernie.geckolib.animatable.processing.AnimationTest;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.Level;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.util.GeckoLibUtil;
 
 public class DinoEggEntity extends Entity implements GeoEntity {
 
-    private static final TrackedData<String> DINO_ID = DataTracker.registerData(
-            DinoEggEntity.class, TrackedDataHandlerRegistry.STRING);
-    private static final TrackedData<Integer> HATCH_PROGRESS = DataTracker.registerData(
-            DinoEggEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final EntityDataAccessor<String> DINO_ID = SynchedEntityData.defineId(
+            DinoEggEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Integer> HATCH_PROGRESS = SynchedEntityData.defineId(
+            DinoEggEntity.class, EntityDataSerializers.INT);
 
     private static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private UUID ownerUuid;
 
-    public DinoEggEntity(EntityType<?> type, World world) {
-        super(type, world);
+    public DinoEggEntity(EntityType<?> type, Level level) {
+        super(type, level);
     }
 
     @Override
-    public boolean canHit() {
+    public boolean isPickable() {
         return true;
     }
 
     @Override
-    public boolean isCollidable() {
+    public boolean isPushable() {
         return true;
     }
 
     @Override
-    public ActionResult interact(PlayerEntity player, Hand hand) {
-        if (!getWorld().isClient() && player.getStackInHand(hand).isOf(ModItems.DINOPEDIA)) {
-            ServerPlayNetworking.send((ServerPlayerEntity) player, new DinopediaPayload(getId()));
-            return ActionResult.SUCCESS;
+    public InteractionResult interact(Player player, InteractionHand hand, net.minecraft.world.phys.Vec3 hitPos) {
+        if (!level().isClientSide() && player.getItemInHand(hand).getItem() == ModItems.DINOPEDIA) {
+            ServerPlayNetworking.send((ServerPlayer) player, new DinopediaPayload(getId()));
+            return InteractionResult.SUCCESS;
         }
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-        builder.add(DINO_ID, "");
-        builder.add(HATCH_PROGRESS, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DINO_ID, "");
+        builder.define(HATCH_PROGRESS, 0);
     }
 
     public String getDinoId() {
-        return dataTracker.get(DINO_ID);
+        return entityData.get(DINO_ID);
     }
 
     public void setDinoId(String id) {
-        dataTracker.set(DINO_ID, id);
+        entityData.set(DINO_ID, id);
     }
 
     public int getHatchProgress() {
-        return dataTracker.get(HATCH_PROGRESS);
+        return entityData.get(HATCH_PROGRESS);
     }
 
     public void setHatchProgress(int progress) {
-        dataTracker.set(HATCH_PROGRESS, progress);
+        entityData.set(HATCH_PROGRESS, progress);
     }
 
     public void setOwnerUuid(UUID uuid) {
@@ -96,7 +97,7 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected double getGravity() {
+    protected double getDefaultGravity() {
         return 0.04;
     }
 
@@ -104,11 +105,11 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     public void tick() {
         // Use vanilla physics: applyGravity + move (same pattern as FallingBlockEntity)
         applyGravity();
-        move(net.minecraft.entity.MovementType.SELF, getVelocity());
-        setVelocity(getVelocity().multiply(0.98));
+        move(net.minecraft.world.entity.MoverType.SELF, getDeltaMovement());
+        setDeltaMovement(getDeltaMovement().scale(0.98));
 
         super.tick();
-        if (getWorld().isClient()) return;
+        if (level().isClientSide()) return;
 
         String dinoId = getDinoId();
         if (dinoId.isEmpty()) {
@@ -116,13 +117,13 @@ public class DinoEggEntity extends Entity implements GeoEntity {
             return;
         }
 
-        Dinosaur dino = DinosaurRegistry.get(Identifier.of(FossilsArch2Mod.MOD_ID, dinoId));
+        Dinosaur dino = DinosaurRegistry.get(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinoId));
         if (dino == null) {
             discard();
             return;
         }
 
-        int light = getWorld().getLightLevel(getBlockPos());
+        int light = level().getMaxLocalRawBrightness(blockPosition());
         int progress = getHatchProgress();
 
         if (light >= 9) {
@@ -145,7 +146,7 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     }
 
     private void hatch(Dinosaur dino) {
-        if (!(getWorld() instanceof ServerWorld serverWorld)) return;
+        if (!(level() instanceof ServerLevel serverLevel)) return;
 
         EntityType<DinosaurEntity> entityType = ModEntities.TYPES.get(dino.id);
         if (entityType == null) {
@@ -153,32 +154,32 @@ public class DinoEggEntity extends Entity implements GeoEntity {
             return;
         }
 
-        DinosaurEntity baby = entityType.create(serverWorld, SpawnReason.BREEDING);
+        DinosaurEntity baby = entityType.create(serverLevel, EntitySpawnReason.BREEDING);
         if (baby == null) {
             discard();
             return;
         }
 
-        baby.refreshPositionAndAngles(getX(), getY(), getZ(), getYaw(), 0);
+        baby.snapTo(getX(), getY(), getZ(), getYRot(), 0);
         baby.setDinoAge(0);
 
         if (ownerUuid != null) {
-            PlayerEntity owner = serverWorld.getPlayerByUuid(ownerUuid);
+            Player owner = serverLevel.getPlayerInAnyDimension(ownerUuid);
             if (owner != null) {
                 baby.setTamedBy(owner);
-                if (owner instanceof ServerPlayerEntity serverPlayer) {
+                if (owner instanceof ServerPlayer serverPlayer) {
                     ModAdvancements.grant(serverPlayer, ModAdvancements.HATCH_DINOSAUR,
                             ModAdvancements.HATCHED_DINOSAUR_CRITERION);
                 }
             }
         }
 
-        serverWorld.spawnEntity(baby);
+        serverLevel.addFreshEntity(baby);
         discard();
     }
 
     @Override
-    public boolean damage(ServerWorld world, DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         discard();
         return true;
     }
@@ -186,24 +187,24 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     private static final int CURRENT_DATA_VERSION = 1;
 
     @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
-        int savedVersion = nbt.getInt("FA2DataVersion", 0);
+    protected void readAdditionalSaveData(ValueInput input) {
+        int savedVersion = input.getIntOr("FA2DataVersion", 0);
         // if (savedVersion < 2) { ... }
 
-        setDinoId(nbt.getString("DinoId").orElse(""));
-        setHatchProgress(nbt.getInt("HatchProgress", 0));
-        nbt.getString("OwnerUUID").ifPresent(s -> {
+        setDinoId(input.getStringOr("DinoId", ""));
+        setHatchProgress(input.getIntOr("HatchProgress", 0));
+        input.getString("OwnerUUID").ifPresent(s -> {
             try { ownerUuid = UUID.fromString(s); } catch (IllegalArgumentException ignored) {}
         });
     }
 
     @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
-        nbt.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
-        nbt.putString("DinoId", getDinoId());
-        nbt.putInt("HatchProgress", getHatchProgress());
+    protected void addAdditionalSaveData(ValueOutput output) {
+        output.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
+        output.putString("DinoId", getDinoId());
+        output.putInt("HatchProgress", getHatchProgress());
         if (ownerUuid != null) {
-            nbt.putString("OwnerUUID", ownerUuid.toString());
+            output.putString("OwnerUUID", ownerUuid.toString());
         }
     }
 

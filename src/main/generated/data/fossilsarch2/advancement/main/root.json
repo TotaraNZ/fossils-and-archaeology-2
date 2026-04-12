@@ -1,7 +1,7 @@
 {
   "criteria": {
     "entered_world": {
-      "trigger": "minecraft:tick"
+      "trigger": "minecraft:location"
     }
   },
   "display": {
@@ -11,7 +11,6 @@
       "translate": "advancement.fossilsarch2.root.description"
     },
     "icon": {
-      "count": 1,
       "id": "fossilsarch2:suspicious_stone"
     },
     "show_toast": false,

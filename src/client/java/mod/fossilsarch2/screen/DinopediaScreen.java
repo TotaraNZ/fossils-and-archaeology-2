@@ -5,12 +5,13 @@ import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import mod.fossilsarch2.registry.DinosaurRegistry;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.world.entity.EntityReference;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 /**
  * Faithful re-creation of the original Fossils & Archaeology dinopedia GUI.
@@ -20,9 +21,9 @@ import net.minecraft.util.Identifier;
 public class DinopediaScreen extends Screen {
 
     private static final Identifier TEXTURE =
-            Identifier.of(FossilsArch2Mod.MOD_ID, "textures/gui/dinopedia.png");
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/dinopedia.png");
     private static final Identifier ICONS =
-            Identifier.of(FossilsArch2Mod.MOD_ID, "textures/gui/pedia_icons.png");
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/pedia_icons.png");
 
     // Icon positions within the 32x16 atlas
     private static final int ICON_CLOCK_U = 0;
@@ -38,17 +39,17 @@ public class DinopediaScreen extends Screen {
     private static final int LEFT_INDENT = 30;
     private static final int LINE_HEIGHT = 12;
 
-    // Original colors
-    private static final int TEXT_COLOR = 4210752;                        // 0x404040
-    private static final int BLUE_COLOR = (40 << 16) | (90 << 8) | 245;  // rgb(40,90,245)
-    private static final int BLACK_COLOR = 0;
+    // Original colors (alpha must be 0xFF for 26.1 rendering)
+    private static final int TEXT_COLOR = 0xFF404040;
+    private static final int BLUE_COLOR = 0xFF285AF5;
+    private static final int BLACK_COLOR = 0xFF000000;
 
     private final DinosaurEntity dinosaur;
     private final DinoEggEntity egg;
     private int leftLineCounter;
 
     private DinopediaScreen(DinosaurEntity dinosaur, DinoEggEntity egg) {
-        super(Text.translatable("gui.fossilsarch2.dinopedia"));
+        super(Component.translatable("gui.fossilsarch2.dinopedia"));
         this.dinosaur = dinosaur;
         this.egg = egg;
     }
@@ -62,13 +63,13 @@ public class DinopediaScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(context, mouseX, mouseY, partialTick);
 
         int x = (this.width - GUI_WIDTH) / 2;
         int y = (this.height - GUI_HEIGHT) / 2;
 
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x, y, 0, 0,
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0f, 0f,
                 GUI_WIDTH, GUI_HEIGHT, 256, 256);
 
         leftLineCounter = 0;
@@ -80,7 +81,7 @@ public class DinopediaScreen extends Screen {
         }
     }
 
-    private void renderDinosaurPage(DrawContext context, int gx, int gy) {
+    private void renderDinosaurPage(GuiGraphicsExtractor context, int gx, int gy) {
         Dinosaur dino = dinosaur.getDinosaur();
         if (dino == null) return;
 
@@ -88,12 +89,12 @@ public class DinopediaScreen extends Screen {
 
         // Custom name (blue) at y=24
         if (dinosaur.hasCustomName()) {
-            context.drawText(textRenderer, dinosaur.getCustomName().getString(),
+            context.text(font, dinosaur.getCustomName().getString(),
                     gx + RIGHT_INDENT, gy + 24, BLUE_COLOR, false);
         }
 
         // Species name (black) at y=34
-        context.drawText(textRenderer, dino.display_name,
+        context.text(font, dino.display_name,
                 gx + RIGHT_INDENT, gy + 34, BLACK_COLOR, false);
 
         // Clock icon (8x8) + age at y=46
@@ -101,49 +102,49 @@ public class DinopediaScreen extends Screen {
         String dayKey = dinosaur.getDinoAge() == 1
                 ? "gui.fossilsarch2.dinopedia.age.day"
                 : "gui.fossilsarch2.dinopedia.age.days";
-        context.drawText(textRenderer, dinosaur.getDinoAge() + " " + Text.translatable(dayKey).getString(),
+        context.text(font, dinosaur.getDinoAge() + " " + Component.translatable(dayKey).getString(),
                 gx + RIGHT_INDENT + 12, gy + 46, TEXT_COLOR, false);
 
         // Heart icon (9x9) + health at y=58
         drawIcon(context, gx + RIGHT_INDENT, gy + 58, ICON_HEART_U, 0, 9, 9);
-        context.drawText(textRenderer,
+        context.text(font,
                 String.format("%.0f/%.0f", dinosaur.getHealth(), dinosaur.getMaxHealth()),
                 gx + RIGHT_INDENT + 12, gy + 58, TEXT_COLOR, false);
 
         // Food icon (9x9) + hunger at y=70
         drawIcon(context, gx + RIGHT_INDENT, gy + 70, ICON_FOOD_U, 0, 9, 9);
-        context.drawText(textRenderer,
+        context.text(font,
                 dinosaur.getHunger() + "/" + dinosaur.getMaxHunger(),
                 gx + RIGHT_INDENT + 12, gy + 70, TEXT_COLOR, false);
 
         // ===== LEFT PAGE (auto-stacking matching AddStringLR) =====
 
-        if (dinosaur.isTamed()) {
-            addLeftLine(context, gx, gy, Text.translatable("gui.fossilsarch2.dinopedia.owner").getString());
-            LivingEntity owner = dinosaur.getOwner();
+        if (dinosaur.isTame()) {
+            addLeftLine(context, gx, gy, Component.translatable("gui.fossilsarch2.dinopedia.owner").getString());
+            LivingEntity owner = EntityReference.getLivingEntity(dinosaur.getOwnerReference(), dinosaur.level());
             String ownerName = owner != null ? owner.getName().getString() : "Unknown";
             if (ownerName.length() > 11) ownerName = ownerName.substring(0, 11);
             addLeftLine(context, gx, gy, ownerName);
         }
 
         addLeftLine(context, gx, gy,
-                Text.translatable("gui.fossilsarch2.dinopedia.diet", dino.diet.name()).getString());
+                Component.translatable("gui.fossilsarch2.dinopedia.diet", dino.diet.name()).getString());
 
         int growthPct = (int) (dinosaur.getGrowthProgress() * 100);
         addLeftLine(context, gx, gy,
-                Text.translatable("gui.fossilsarch2.dinopedia.growth", growthPct).getString());
+                Component.translatable("gui.fossilsarch2.dinopedia.growth", growthPct).getString());
     }
 
-    private void renderEggPage(DrawContext context, int gx, int gy) {
+    private void renderEggPage(GuiGraphicsExtractor context, int gx, int gy) {
         String dinoId = egg.getDinoId();
-        Dinosaur dino = DinosaurRegistry.get(Identifier.of(FossilsArch2Mod.MOD_ID, dinoId));
+        Dinosaur dino = DinosaurRegistry.get(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinoId));
         if (dino == null) return;
 
         // Egg page: PrintStringLR positions at x = 70 + 81 = 151, y = 12*(line+1)
         int rx = gx + 151;
 
         // Species name (blue)
-        context.drawText(textRenderer, dino.display_name,
+        context.text(font, dino.display_name,
                 rx, gy + LINE_HEIGHT * 2, BLUE_COLOR, false);
 
         // Status
@@ -152,36 +153,36 @@ public class DinopediaScreen extends Screen {
                 ? "gui.fossilsarch2.dinopedia.warm"
                 : "gui.fossilsarch2.dinopedia.cold";
 
-        context.drawText(textRenderer,
-                Text.translatable("gui.fossilsarch2.dinopedia.status").getString(),
+        context.text(font,
+                Component.translatable("gui.fossilsarch2.dinopedia.status").getString(),
                 rx, gy + LINE_HEIGHT * 3, BLUE_COLOR, false);
-        context.drawText(textRenderer,
-                Text.translatable(statusKey).getString(),
+        context.text(font,
+                Component.translatable(statusKey).getString(),
                 rx, gy + LINE_HEIGHT * 4, TEXT_COLOR, false);
 
         // Progress (only if positive)
         if (progress >= 0) {
             int hatchPct = (int) Math.floor((float) progress / (float) dino.hatch_time * 100.0f);
-            context.drawText(textRenderer,
-                    Text.translatable("gui.fossilsarch2.dinopedia.progress").getString(),
+            context.text(font,
+                    Component.translatable("gui.fossilsarch2.dinopedia.progress").getString(),
                     rx, gy + LINE_HEIGHT * 5, BLUE_COLOR, false);
-            context.drawText(textRenderer, hatchPct + "/100",
+            context.text(font, hatchPct + "/100",
                     rx, gy + LINE_HEIGHT * 6, TEXT_COLOR, false);
         }
     }
 
-    private void drawIcon(DrawContext context, int x, int y, int u, int v, int w, int h) {
-        context.drawTexture(RenderLayer::getGuiTextured, ICONS, x, y, u, v, w, h, ATLAS_W, ATLAS_H);
+    private void drawIcon(GuiGraphicsExtractor context, int x, int y, int u, int v, int w, int h) {
+        context.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, (float) u, (float) v, w, h, ATLAS_W, ATLAS_H);
     }
 
-    private void addLeftLine(DrawContext context, int gx, int gy, String text) {
-        context.drawText(textRenderer, text,
+    private void addLeftLine(GuiGraphicsExtractor context, int gx, int gy, String text) {
+        context.text(font, text,
                 gx + LEFT_INDENT, gy + LINE_HEIGHT * (leftLineCounter + 1), TEXT_COLOR, false);
         leftLineCounter++;
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 }

@@ -2,9 +2,9 @@ package mod.fossilsarch2.model;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.entity.DinosaurEntity;
-import net.minecraft.util.Identifier;
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.renderer.base.GeoRenderState;
+import net.minecraft.resources.Identifier;
+import com.geckolib.model.GeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
 
 public class DinosaurModel extends GeoModel<DinosaurEntity> {
 
@@ -22,7 +22,7 @@ public class DinosaurModel extends GeoModel<DinosaurEntity> {
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
-        return Identifier.of(FossilsArch2Mod.MOD_ID, dinosaurId);
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinosaurId);
     }
 
     @Override
@@ -30,15 +30,15 @@ public class DinosaurModel extends GeoModel<DinosaurEntity> {
         // If variant is set, use textures/entity/{id}/{id}_{variant}.png
         // Otherwise use textures/entity/{id}/{id}.png
         if (!currentVariant.isEmpty()) {
-            return Identifier.of(FossilsArch2Mod.MOD_ID,
+            return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
                     "textures/entity/" + dinosaurId + "/" + dinosaurId + "_" + currentVariant + ".png");
         }
-        return Identifier.of(FossilsArch2Mod.MOD_ID,
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
                 "textures/entity/" + dinosaurId + "/" + dinosaurId + ".png");
     }
 
     @Override
     public Identifier getAnimationResource(DinosaurEntity animatable) {
-        return Identifier.of(FossilsArch2Mod.MOD_ID, dinosaurId);
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinosaurId);
     }
 }

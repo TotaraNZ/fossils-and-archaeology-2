@@ -5,49 +5,50 @@ import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.entity.ai.DinoEatFernGoal;
 import mod.fossilsarch2.entity.ai.DinoUseFeederGoal;
 import mod.fossilsarch2.registry.ModItems;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
-import net.minecraft.entity.ai.goal.AttackWithOwnerGoal;
-import net.minecraft.entity.ai.goal.EscapeDangerGoal;
-import net.minecraft.entity.ai.goal.FollowOwnerGoal;
-import net.minecraft.entity.ai.goal.FollowParentGoal;
-import net.minecraft.entity.ai.goal.LookAroundGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.entity.ai.goal.RevengeGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.ai.goal.TemptGoal;
-import net.minecraft.entity.ai.goal.TrackOwnerAttackerGoal;
-import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.passive.PassiveEntity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animatable.manager.AnimatableManager;
-import software.bernie.geckolib.animatable.processing.AnimationController;
-import software.bernie.geckolib.animatable.processing.AnimationTest;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
+import net.minecraft.world.entity.ai.goal.FollowParentGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.PanicGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.Level;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.util.GeckoLibUtil;
 
-public class DinosaurEntity extends TameableEntity implements GeoEntity {
+public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
     protected static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("walk");
     protected static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("idle");
@@ -59,29 +60,29 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     private static final String SPECIAL_CONTROLLER = "Special";
     private int specialAnimCooldown = 0;
 
-    private static final TrackedData<Integer> DINO_AGE = DataTracker.registerData(
-            DinosaurEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final TrackedData<Integer> HUNGER = DataTracker.registerData(
-            DinosaurEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final TrackedData<String> VARIANT = DataTracker.registerData(
-            DinosaurEntity.class, TrackedDataHandlerRegistry.STRING);
-    private static final TrackedData<Boolean> EATING = DataTracker.registerData(
-            DinosaurEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DINO_AGE = SynchedEntityData.defineId(
+            DinosaurEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> HUNGER = SynchedEntityData.defineId(
+            DinosaurEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<String> VARIANT = SynchedEntityData.defineId(
+            DinosaurEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Boolean> EATING = SynchedEntityData.defineId(
+            DinosaurEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final int DEFAULT_MAX_HUNGER = 100;
 
-    // Bump on NBT schema changes; migrate in readCustomDataFromNbt
+    // Bump on NBT schema changes; migrate in readAdditionalSaveData
     private static final int CURRENT_DATA_VERSION = 1;
 
     private final String dinosaurId;
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
-    public DinosaurEntity(EntityType<? extends DinosaurEntity> type, World world) {
-        super(type, world);
-        Identifier id = EntityType.getId(type);
+    public DinosaurEntity(EntityType<? extends DinosaurEntity> type, Level level) {
+        super(type, level);
+        Identifier id = EntityType.getKey(type);
         this.dinosaurId = id != null ? id.getPath() : "";
 
-        // initGoals() is called from super() before dinosaurId is set,
+        // registerGoals() is called from super() before dinosaurId is set,
         // so diet-dependent goals must be added here after construction
         setupDietGoals();
 
@@ -93,30 +94,30 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     }
 
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(DINO_AGE, 0);
-        builder.add(HUNGER, DEFAULT_MAX_HUNGER);
-        builder.add(VARIANT, "");
-        builder.add(EATING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DINO_AGE, 0);
+        builder.define(HUNGER, DEFAULT_MAX_HUNGER);
+        builder.define(VARIANT, "");
+        builder.define(EATING, false);
     }
 
     @Override
-    protected void initGoals() {
+    protected void registerGoals() {
         // Only register diet-independent goals here (dinosaurId is null at this point)
-        this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(3, new DinoUseFeederGoal(this));
-        this.goalSelector.add(4, new DinoEatFernGoal(this));
-        this.goalSelector.add(5, new TemptGoal(this, 1.1D, stack -> stack.isOf(ModItems.FERN_SEED), false));
-        this.goalSelector.add(6, new FollowOwnerGoal(this, 1.0D, 10.0F, 2.0F));
-        this.goalSelector.add(7, new FollowParentGoal(this, 1.0D));
-        this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0D));
-        this.goalSelector.add(9, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.add(10, new LookAroundGoal(this));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(3, new DinoUseFeederGoal(this));
+        this.goalSelector.addGoal(4, new DinoEatFernGoal(this));
+        this.goalSelector.addGoal(5, new TemptGoal(this, 1.1D, stack -> stack.getItem() == ModItems.FERN_SEED, false));
+        this.goalSelector.addGoal(6, new FollowOwnerGoal(this, 1.0D, 10.0F, 2.0F));
+        this.goalSelector.addGoal(7, new FollowParentGoal(this, 1.0D));
+        this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));
 
-        this.targetSelector.add(1, new TrackOwnerAttackerGoal(this));
-        this.targetSelector.add(2, new AttackWithOwnerGoal(this));
-        this.targetSelector.add(3, new RevengeGoal(this));
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(3, new HurtByTargetGoal(this));
     }
 
     private void setupDietGoals() {
@@ -128,36 +129,36 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
         Dinosaur.Diet diet = dino.diet != null ? dino.diet : Dinosaur.Diet.HERBIVORE;
 
         if (diet == Dinosaur.Diet.CARNIVORE || diet == Dinosaur.Diet.OMNIVORE) {
-            this.goalSelector.add(2, new MeleeAttackGoal(this, dino.chase_speed, false));
+            this.goalSelector.addGoal(2, new MeleeAttackGoal(this, dino.chase_speed, false));
             // Hunt animals (not other dinosaurs)
-            this.targetSelector.add(4, new ActiveTargetGoal<>(this, AnimalEntity.class, false));
+            this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, false));
             // Wild (untamed) carnivores attack players on sight
-            this.targetSelector.add(5, new ActiveTargetGoal<>(this, PlayerEntity.class, false,
-                    (target, world) -> !this.isTamed()));
+            this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Player.class, false,
+                    (target, level) -> !this.isTame()));
         }
 
         if (diet == Dinosaur.Diet.HERBIVORE) {
-            this.goalSelector.add(1, new EscapeDangerGoal(this, dino.flee_speed));
+            this.goalSelector.addGoal(1, new PanicGoal(this, dino.flee_speed));
         }
     }
 
-    public static DefaultAttributeContainer.Builder createAttributes(Dinosaur d) {
-        return MobEntity.createMobAttributes()
-                .add(EntityAttributes.MAX_HEALTH, d.health)
-                .add(EntityAttributes.MOVEMENT_SPEED, d.speed)
-                .add(EntityAttributes.ATTACK_DAMAGE, d.attack_damage)
-                .add(EntityAttributes.TEMPT_RANGE, 16.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 32.0)
-                .add(EntityAttributes.STEP_HEIGHT, 1.0);
+    public static AttributeSupplier.Builder createAttributes(Dinosaur d) {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, d.health)
+                .add(Attributes.MOVEMENT_SPEED, d.speed)
+                .add(Attributes.ATTACK_DAMAGE, d.attack_damage)
+                .add(Attributes.TEMPT_RANGE, 16.0)
+                .add(Attributes.FOLLOW_RANGE, 32.0)
+                .add(Attributes.STEP_HEIGHT, 1.0);
     }
 
     // For registry fallback
-    public static DefaultAttributeContainer.Builder createMobAttributes() {
-        return MobEntity.createMobAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 20.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.25)
-                .add(EntityAttributes.ATTACK_DAMAGE, 4.0)
-                .add(EntityAttributes.TEMPT_RANGE, 16.0);
+    public static AttributeSupplier.Builder createMobAttributes() {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, 20.0)
+                .add(Attributes.MOVEMENT_SPEED, 0.25)
+                .add(Attributes.ATTACK_DAMAGE, 4.0)
+                .add(Attributes.TEMPT_RANGE, 16.0);
     }
 
     // --- Dinosaur Data ---
@@ -173,21 +174,21 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     }
 
     public String getVariant() {
-        return dataTracker.get(VARIANT);
+        return entityData.get(VARIANT);
     }
 
     public void setVariant(String variant) {
-        dataTracker.set(VARIANT, variant);
+        entityData.set(VARIANT, variant);
     }
 
     // --- Age / Growth ---
 
     public int getDinoAge() {
-        return dataTracker.get(DINO_AGE);
+        return entityData.get(DINO_AGE);
     }
 
     public void setDinoAge(int age) {
-        dataTracker.set(DINO_AGE, age);
+        entityData.set(DINO_AGE, age);
     }
 
     public boolean isBaby() {
@@ -206,11 +207,11 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     // --- Hunger ---
 
     public int getHunger() {
-        return dataTracker.get(HUNGER);
+        return entityData.get(HUNGER);
     }
 
     public void setHunger(int hunger) {
-        dataTracker.set(HUNGER, Math.max(0, Math.min(getMaxHunger(), hunger)));
+        entityData.set(HUNGER, Math.max(0, Math.min(getMaxHunger(), hunger)));
     }
 
     public boolean isHungry() {
@@ -235,62 +236,62 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     }
 
     public boolean isEating() {
-        return dataTracker.get(EATING);
+        return entityData.get(EATING);
     }
 
     public void setEating(boolean eating) {
-        dataTracker.set(EATING, eating);
+        entityData.set(EATING, eating);
     }
 
     // --- Taming ---
 
-    public void setTamedBy(PlayerEntity player) {
-        setOwner(player);
-        setTamed(true, true);
+    public void setTamedBy(Player player) {
+        tame(player);
+        setTame(true, true);
     }
 
     @Override
-    public ActionResult interactMob(PlayerEntity player, Hand hand) {
-        ItemStack stack = player.getStackInHand(hand);
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
 
         // Dinopedia interaction
-        if (stack.isOf(ModItems.DINOPEDIA) && !getWorld().isClient()) {
+        if (stack.getItem() == ModItems.DINOPEDIA && !level().isClientSide()) {
             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                    (net.minecraft.server.network.ServerPlayerEntity) player,
+                    (net.minecraft.server.level.ServerPlayer) player,
                     new mod.fossilsarch2.network.DinopediaPayload(getId()));
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         // Taming with food
-        if (!isTamed() && isFood(stack)) {
+        if (!isTame() && isDinoFood(stack)) {
             if (!player.isCreative()) {
-                stack.decrement(1);
+                stack.shrink(1);
             }
-            if (!getWorld().isClient()) {
+            if (!level().isClientSide()) {
                 Dinosaur dinoData = getDinosaur();
                 float tameChance = dinoData != null ? dinoData.tame_chance : 0.33f;
                 if (getRandom().nextFloat() < tameChance) {
                     setTamedBy(player);
-                    getWorld().sendEntityStatus(this, (byte) 7); // hearts
+                    level().broadcastEntityEvent(this, (byte) 7); // hearts
                 } else {
-                    getWorld().sendEntityStatus(this, (byte) 6); // smoke
+                    level().broadcastEntityEvent(this, (byte) 6); // smoke
                 }
             }
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return super.interactMob(player, hand);
+        return super.mobInteract(player, hand);
     }
 
-    private boolean isFood(ItemStack stack) {
+    private boolean isDinoFood(ItemStack stack) {
         Dinosaur dino = getDinosaur();
         if (dino == null) return false;
 
-        Identifier itemId = Registries.ITEM.getId(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         String path = itemId.getPath();
 
         if (dino.diet != Dinosaur.Diet.CARNIVORE) {
-            if (stack.isOf(ModItems.FERN_SEED)) return true;
+            if (stack.getItem() == ModItems.FERN_SEED) return true;
         }
         if (dino.diet != Dinosaur.Diet.HERBIVORE) {
             if (path.endsWith("_meat")) return true;
@@ -304,32 +305,32 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     @Override
     public void tick() {
         super.tick();
-        if (getWorld().isClient()) return;
+        if (level().isClientSide()) return;
 
         Dinosaur dino = getDinosaur();
         if (dino == null) return;
 
         // Growth
-        if (getDinoAge() < dino.max_age && age % dino.grow_time == 0 && age > 0) {
+        if (getDinoAge() < dino.max_age && tickCount % dino.grow_time == 0 && tickCount > 0) {
             setDinoAge(getDinoAge() + 1);
         }
 
         // Hunger decrease
         int decayRate = dino.hunger_decay_rate;
-        if (decayRate > 0 && age % decayRate == 0) {
+        if (decayRate > 0 && tickCount % decayRate == 0) {
             setHunger(getHunger() - 1);
         }
 
         // Starvation
-        if (getHunger() <= 0 && age % 40 == 0) {
-            damage((ServerWorld) getWorld(), getDamageSources().starve(), 1.0f);
+        if (getHunger() <= 0 && tickCount % 40 == 0) {
+            hurtServer((ServerLevel) level(), damageSources().starve(), 1.0f);
         }
 
         // Random special idle animations from JSON
         if (specialAnimCooldown > 0) {
             specialAnimCooldown--;
         } else if (dino.special_animations != null && !dino.special_animations.isEmpty()
-                && !isNavigating() && getTarget() == null && getRandom().nextInt(200) == 0) {
+                && getNavigation().isDone() && getTarget() == null && getRandom().nextInt(200) == 0) {
             String anim = dino.special_animations.get(getRandom().nextInt(dino.special_animations.size()));
             triggerAnim(SPECIAL_CONTROLLER, anim);
             specialAnimCooldown = 300;
@@ -339,64 +340,64 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     // --- Death drops ---
 
     @Override
-    protected void dropLoot(ServerWorld world, DamageSource source, boolean causedByPlayer) {
-        super.dropLoot(world, source, causedByPlayer);
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean causedByPlayer) {
+        super.dropCustomDeathLoot(level, source, causedByPlayer);
         Dinosaur dino = getDinosaur();
         if (dino == null) return;
 
-        net.minecraft.item.Item meatItem = Registries.ITEM.get(Identifier.of(FossilsArch2Mod.MOD_ID, dino.id + "_meat"));
-        if (meatItem != net.minecraft.item.Items.AIR) {
+        net.minecraft.world.item.Item meatItem = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dino.id + "_meat"));
+        if (meatItem != net.minecraft.world.item.Items.AIR) {
             int count = 1 + getRandom().nextInt(dino.meat_drop_count);
-            dropStack(world, new ItemStack(meatItem, count));
+            spawnAtLocation(level, new ItemStack(meatItem, count));
         }
     }
 
     // --- Sounds ---
 
     @Override
-    protected net.minecraft.sound.SoundEvent getAmbientSound() {
+    protected net.minecraft.sounds.SoundEvent getAmbientSound() {
         return mod.fossilsarch2.registry.ModSounds.get(dinosaurId + ".ambient");
     }
 
     @Override
-    protected net.minecraft.sound.SoundEvent getHurtSound(DamageSource source) {
+    protected net.minecraft.sounds.SoundEvent getHurtSound(DamageSource source) {
         return mod.fossilsarch2.registry.ModSounds.get(dinosaurId + ".hurt");
     }
 
     @Override
-    protected net.minecraft.sound.SoundEvent getDeathSound() {
+    protected net.minecraft.sounds.SoundEvent getDeathSound() {
         return mod.fossilsarch2.registry.ModSounds.get(dinosaurId + ".death");
     }
 
     // --- NBT ---
 
     @Override
-    public void writeCustomDataToNbt(NbtCompound nbt) {
-        super.writeCustomDataToNbt(nbt);
-        nbt.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
-        nbt.putInt("DinoAge", getDinoAge());
-        nbt.putInt("Hunger", getHunger());
-        nbt.putString("Variant", getVariant());
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
+        output.putInt("DinoAge", getDinoAge());
+        output.putInt("Hunger", getHunger());
+        output.putString("Variant", getVariant());
     }
 
     @Override
-    public void readCustomDataFromNbt(NbtCompound nbt) {
-        super.readCustomDataFromNbt(nbt);
-        int savedVersion = nbt.getInt("FA2DataVersion", 0);
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        int savedVersion = input.getIntOr("FA2DataVersion", 0);
         // if (savedVersion < 2) { ... }
 
-        setDinoAge(nbt.getInt("DinoAge", 0));
-        setHunger(nbt.getInt("Hunger", getMaxHunger()));
-        setVariant(nbt.getString("Variant").orElse(""));
+        setDinoAge(input.getIntOr("DinoAge", 0));
+        setHunger(input.getIntOr("Hunger", getMaxHunger()));
+        setVariant(input.getStringOr("Variant", ""));
     }
 
     @Override
-    public boolean isBreedingItem(ItemStack stack) {
+    public boolean isFood(ItemStack stack) {
         return false; // Dinosaurs don't breed via vanilla mechanics
     }
 
     @Override
-    public PassiveEntity createChild(ServerWorld world, PassiveEntity mate) {
+    public AgeableMob getBreedOffspring(ServerLevel level, AgeableMob mate) {
         return null;
     }
 
@@ -428,7 +429,7 @@ public class DinosaurEntity extends TameableEntity implements GeoEntity {
     }
 
     protected PlayState attackController(final AnimationTest<DinosaurEntity> animTest) {
-        if (this.handSwinging) {
+        if (this.swinging) {
             return animTest.setAndContinue(BITE_ANIM);
         }
         if (this.isEating()) {

@@ -6,7 +6,7 @@ import java.util.Map;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public class DinosaurRegistry {
     private static final Map<Identifier, Dinosaur> ALL = new HashMap<>();

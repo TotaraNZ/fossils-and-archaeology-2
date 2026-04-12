@@ -1,9 +1,9 @@
 package mod.fossilsarch2.registry;
 
 import mod.fossilsarch2.FossilsArch2Mod;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 
 public final class ModAdvancements {
 
@@ -16,13 +16,13 @@ public final class ModAdvancements {
     public static final String HATCHED_DINOSAUR_CRITERION = "hatched_dinosaur";
 
     private static Identifier id(String path) {
-        return Identifier.of(FossilsArch2Mod.MOD_ID, path);
+        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path);
     }
 
-    public static void grant(ServerPlayerEntity player, Identifier advancementId, String criterion) {
-        AdvancementEntry advancement = player.server.getAdvancementLoader().get(advancementId);
+    public static void grant(ServerPlayer player, Identifier advancementId, String criterion) {
+        AdvancementHolder advancement = player.level().getServer().getAdvancements().get(advancementId);
         if (advancement != null) {
-            player.getAdvancementTracker().grantCriterion(advancement, criterion);
+            player.getAdvancements().award(advancement, criterion);
         }
     }
 

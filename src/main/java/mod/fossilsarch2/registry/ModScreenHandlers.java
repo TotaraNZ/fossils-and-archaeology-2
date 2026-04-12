@@ -5,33 +5,33 @@ import mod.fossilsarch2.screen.AnalyserScreenHandler;
 import mod.fossilsarch2.screen.CultivatorScreenHandler;
 import mod.fossilsarch2.screen.FeederScreenHandler;
 import mod.fossilsarch2.screen.WorktableScreenHandler;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.inventory.MenuType;
 
 public final class ModScreenHandlers {
 
-    public static final ScreenHandlerType<AnalyserScreenHandler> ANALYSER = Registry.register(
-            Registries.SCREEN_HANDLER,
-            Identifier.of(FossilsArch2Mod.MOD_ID, "analyser"),
-            new ScreenHandlerType<>(AnalyserScreenHandler::new, FeatureSet.empty()));
+    public static final MenuType<AnalyserScreenHandler> ANALYSER = Registry.register(
+            BuiltInRegistries.MENU,
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "analyser"),
+            new MenuType<>(AnalyserScreenHandler::new, FeatureFlagSet.of()));
 
-    public static final ScreenHandlerType<CultivatorScreenHandler> CULTIVATOR = Registry.register(
-            Registries.SCREEN_HANDLER,
-            Identifier.of(FossilsArch2Mod.MOD_ID, "cultivator"),
-            new ScreenHandlerType<>(CultivatorScreenHandler::new, FeatureSet.empty()));
+    public static final MenuType<CultivatorScreenHandler> CULTIVATOR = Registry.register(
+            BuiltInRegistries.MENU,
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "cultivator"),
+            new MenuType<>(CultivatorScreenHandler::new, FeatureFlagSet.of()));
 
-    public static final ScreenHandlerType<FeederScreenHandler> FEEDER = Registry.register(
-            Registries.SCREEN_HANDLER,
-            Identifier.of(FossilsArch2Mod.MOD_ID, "feeder"),
-            new ScreenHandlerType<>(FeederScreenHandler::new, FeatureSet.empty()));
+    public static final MenuType<FeederScreenHandler> FEEDER = Registry.register(
+            BuiltInRegistries.MENU,
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "feeder"),
+            new MenuType<>(FeederScreenHandler::new, FeatureFlagSet.of()));
 
-    public static final ScreenHandlerType<WorktableScreenHandler> WORKTABLE = Registry.register(
-            Registries.SCREEN_HANDLER,
-            Identifier.of(FossilsArch2Mod.MOD_ID, "worktable"),
-            new ScreenHandlerType<>(WorktableScreenHandler::new, FeatureSet.empty()));
+    public static final MenuType<WorktableScreenHandler> WORKTABLE = Registry.register(
+            BuiltInRegistries.MENU,
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "worktable"),
+            new MenuType<>(WorktableScreenHandler::new, FeatureFlagSet.of()));
 
     public static void init() {
     }

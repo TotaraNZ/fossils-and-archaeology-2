@@ -1,9 +1,9 @@
 package mod.fossilsarch2.dinosaur;
 
 import mod.fossilsarch2.registry.DinosaurRegistry;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Centralized species ID extraction. Every system that needs to derive a species
@@ -15,11 +15,11 @@ public final class DinosaurUtils {
 
     /**
      * Extract the species ID from an item stack's registry path.
-     * e.g. "tyrannosaurus_meat" → "tyrannosaurus", "tyrannosaurus_cooked_meat" → "tyrannosaurus"
+     * e.g. "tyrannosaurus_meat" -> "tyrannosaurus", "tyrannosaurus_cooked_meat" -> "tyrannosaurus"
      * Returns null if the item doesn't match any known dinosaur item pattern.
      */
     public static String getSpeciesFromItem(ItemStack stack) {
-        Identifier id = Registries.ITEM.getId(stack.getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return getSpeciesFromPath(id.getPath());
     }
 

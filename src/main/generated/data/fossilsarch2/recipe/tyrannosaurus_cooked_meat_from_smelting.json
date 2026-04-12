@@ -3,7 +3,6 @@
   "category": "food",
   "cookingtime": 200,
   "experience": 0.35,
-  "group": "tyrannosaurus",
   "ingredient": "fossilsarch2:tyrannosaurus_meat",
   "result": {
     "id": "fossilsarch2:tyrannosaurus_cooked_meat"

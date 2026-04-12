@@ -2,10 +2,10 @@ package mod.fossilsarch2.registry;
 
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.dinosaur.DinosaurUtils;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +29,9 @@ public final class ModSounds {
     }
 
     private static void registerSound(String namespace, String path) {
-        Identifier id = Identifier.of(namespace, path);
-        SoundEvent event = SoundEvent.of(id);
-        Registry.register(Registries.SOUND_EVENT, id, event);
+        Identifier id = Identifier.fromNamespaceAndPath(namespace, path);
+        SoundEvent event = SoundEvent.createVariableRangeEvent(id);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, id, event);
         ALL.put(path, event);
     }
 

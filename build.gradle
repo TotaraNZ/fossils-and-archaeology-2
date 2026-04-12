@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.10-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom' version '1.16.1'
 	id 'maven-publish'
 	id 'me.qoomon.git-versioning' version '6.4.4'
 }
@@ -44,15 +44,16 @@ sourceSets {
 repositories {
 	maven {
 		name = "GeckoLib"
-		url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+		url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
 		content {
-			includeGroup("software.bernie.geckolib")
+			includeGroup("com.geckolib")
 		}
 	}
 }
 
 loom {
 	splitEnvironmentSourceSets()
+	accessWidenerPath = file("src/main/resources/fossilsarch2.accesswidener")
 
 	mods {
 		"fossilsarch2" {
@@ -66,14 +67,14 @@ loom {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	// No mappings needed — 26.1 is fully unobfuscated
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	// Fabric API
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	// GeckoLib for models and animations
-	modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
+	implementation "com.geckolib:geckolib-fabric-26.1:${geckolib_version}"
 }
 
 processResources {
@@ -93,27 +94,29 @@ tasks.register("checkGeneratedData") {
 	group = "verification"
 	description = "Fails if data generation would modify src/main/generated."
 	dependsOn("runDatagen")
+	def rootDir = project.projectDir
 	doLast {
-		def stdout = new ByteArrayOutputStream()
-		exec {
-			commandLine "git", "status", "--short", "--", "src/main/generated"
-			standardOutput = stdout
-		}
-
-		if (stdout.toString().trim()) {
-			throw new GradleException("Generated data is out of date. Run ./gradlew regenData and commit src/main/generated.")
+		def proc = new ProcessBuilder("git", "status", "--short", "--", "src/main/generated")
+				.directory(rootDir)
+				.redirectErrorStream(true)
+				.start()
+		def changed = proc.inputStream.text.trim()
+		proc.waitFor()
+		if (changed) {
+			throw new GradleException("Generated data is out of date. Run ./gradlew regenData and commit src/main/generated.\n" + changed)
 		}
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 	it.options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
 }
 
 jar {

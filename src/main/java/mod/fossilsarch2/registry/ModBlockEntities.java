@@ -7,10 +7,10 @@ import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.block.entity.SuspiciousStoneBlockEntity;
 import mod.fossilsarch2.block.entity.WorktableBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class ModBlockEntities {
 
@@ -35,7 +35,7 @@ public final class ModBlockEntities {
             FabricBlockEntityTypeBuilder.create(SuspiciousStoneBlockEntity::new, ModBlocks.SUSPICIOUS_STONE).build());
 
     private static <T extends BlockEntityType<?>> T register(String path, T blockEntityType) {
-        return Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(FossilsArch2Mod.MOD_ID, path),
+        return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path),
                 blockEntityType);
     }
 

@@ -1,0 +1,4 @@
+accessWidener	v2	official
+
+# ItemModelGenerators.generateFlatItem is private; we need it for datagen
+accessible	method	net/minecraft/client/data/models/ItemModelGenerators	generateFlatItem	(Lnet/minecraft/world/item/Item;Lnet/minecraft/client/data/models/model/ModelTemplate;)V

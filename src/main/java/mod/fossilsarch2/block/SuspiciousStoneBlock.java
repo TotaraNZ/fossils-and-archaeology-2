@@ -3,80 +3,81 @@ package mod.fossilsarch2.block;
 import com.mojang.serialization.MapCodec;
 
 import mod.fossilsarch2.block.entity.SuspiciousStoneBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
-public class SuspiciousStoneBlock extends BlockWithEntity {
+public class SuspiciousStoneBlock extends BaseEntityBlock {
 
-    public static final MapCodec<SuspiciousStoneBlock> CODEC = Block.createCodec(SuspiciousStoneBlock::new);
-    public static final IntProperty DUSTED = Properties.DUSTED;
+    public static final MapCodec<SuspiciousStoneBlock> CODEC = BlockBehaviour.simpleCodec(SuspiciousStoneBlock::new);
+    public static final IntegerProperty DUSTED = BlockStateProperties.DUSTED;
 
     private final Block baseBlock = Blocks.STONE;
-    private final SoundEvent brushingSound = SoundEvents.ITEM_BRUSH_BRUSHING_GRAVEL;
-    private final SoundEvent brushingCompleteSound = SoundEvents.ITEM_BRUSH_BRUSHING_GRAVEL_COMPLETE;
+    private final SoundEvent brushingSound = SoundEvents.BRUSH_GRAVEL;
+    private final SoundEvent brushingCompleteSound = SoundEvents.BRUSH_GRAVEL_COMPLETED;
 
-    public SuspiciousStoneBlock(Settings settings) {
+    public SuspiciousStoneBlock(Properties settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(DUSTED, 0));
+        registerDefaultState(defaultBlockState().setValue(DUSTED, 0));
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(DUSTED);
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new SuspiciousStoneBlockEntity(pos, state);
     }
 
     @Override
-    protected BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-        world.scheduleBlockTick(pos, this, 2);
+    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+        world.scheduleTick(pos, this, 2);
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(
+    public BlockState updateShape(
             BlockState state,
-            WorldView world,
-            ScheduledTickView tickView,
+            LevelReader world,
+            ScheduledTickAccess tickView,
             BlockPos pos,
             Direction direction,
             BlockPos neighborPos,
             BlockState neighborState,
-            Random random) {
-        tickView.scheduleBlockTick(pos, this, 2);
-        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+            RandomSource random) {
+        tickView.scheduleTick(pos, this, 2);
+        return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof SuspiciousStoneBlockEntity suspiciousStoneBlockEntity) {
             suspiciousStoneBlockEntity.scheduledTick(world);

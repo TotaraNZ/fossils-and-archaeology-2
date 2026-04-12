@@ -9,13 +9,13 @@ import mod.fossilsarch2.dinosaur.DinosaurUtils;
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 
 public final class ModEntities {
     public static final Map<String, EntityType<DinosaurEntity>> TYPES = new HashMap<>();
@@ -28,29 +28,29 @@ public final class ModEntities {
             Dinosaur d = entry.getValue();
             String ns = DinosaurUtils.getNamespace(d);
 
-            RegistryKey<EntityType<?>> key = RegistryKey.of(RegistryKeys.ENTITY_TYPE,
-                    Identifier.of(ns, d.id));
+            ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE,
+                    Identifier.fromNamespaceAndPath(ns, d.id));
 
             EntityType<DinosaurEntity> type = EntityType.Builder
-                    .create(DinosaurEntity::new, SpawnGroup.CREATURE)
-                    .dimensions(d.width, d.height)
+                    .of(DinosaurEntity::new, MobCategory.CREATURE)
+                    .sized(d.width, d.height)
                     .build(key);
 
-            Registry.register(Registries.ENTITY_TYPE, key, type);
+            Registry.register(BuiltInRegistries.ENTITY_TYPE, key, type);
             FabricDefaultAttributeRegistry.register(type, DinosaurEntity.createAttributes(d));
 
             TYPES.put(d.id, type);
         }
 
         // Register egg entity
-        RegistryKey<EntityType<?>> eggKey = RegistryKey.of(RegistryKeys.ENTITY_TYPE,
-                Identifier.of(FossilsArch2Mod.MOD_ID, "dino_egg"));
+        ResourceKey<EntityType<?>> eggKey = ResourceKey.create(Registries.ENTITY_TYPE,
+                Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg"));
 
         DINO_EGG = EntityType.Builder
-                .create(DinoEggEntity::new, SpawnGroup.MISC)
-                .dimensions(0.4f, 0.5f)
+                .of(DinoEggEntity::new, MobCategory.MISC)
+                .sized(0.4f, 0.5f)
                 .build(eggKey);
 
-        Registry.register(Registries.ENTITY_TYPE, eggKey, DINO_EGG);
+        Registry.register(BuiltInRegistries.ENTITY_TYPE, eggKey, DINO_EGG);
     }
 }

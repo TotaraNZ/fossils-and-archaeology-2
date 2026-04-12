@@ -2,36 +2,36 @@ package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.block.entity.CultivatorBlockEntity;
 import mod.fossilsarch2.registry.ModScreenHandlers;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 
-public class CultivatorScreenHandler extends ScreenHandler {
+public class CultivatorScreenHandler extends AbstractContainerMenu {
 
-    private final Inventory inventory;
-    private final PropertyDelegate propertyDelegate;
+    private final Container inventory;
+    private final ContainerData propertyDelegate;
 
     // Client constructor
-    public CultivatorScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(CultivatorBlockEntity.INVENTORY_SIZE),
-                new ArrayPropertyDelegate(4));
+    public CultivatorScreenHandler(int syncId, Inventory playerInventory) {
+        this(syncId, playerInventory, new SimpleContainer(CultivatorBlockEntity.INVENTORY_SIZE),
+                new SimpleContainerData(4));
     }
 
     // Server constructor
-    public CultivatorScreenHandler(int syncId, PlayerInventory playerInventory,
-                                    Inventory inventory, PropertyDelegate propertyDelegate) {
+    public CultivatorScreenHandler(int syncId, Inventory playerInventory,
+                                    Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.CULTIVATOR, syncId);
-        checkSize(inventory, CultivatorBlockEntity.INVENTORY_SIZE);
+        checkContainerSize(inventory, CultivatorBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
 
-        inventory.onOpen(playerInventory.player);
+        inventory.startOpen(playerInventory.player);
 
         // DNA input slot (49, 20)
         this.addSlot(new Slot(inventory, CultivatorBlockEntity.INPUT_SLOT, 49, 20));
@@ -52,7 +52,7 @@ public class CultivatorScreenHandler extends ScreenHandler {
             this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
         }
 
-        this.addProperties(propertyDelegate);
+        this.addDataSlots(propertyDelegate);
     }
 
     public int getCookProgress() {
@@ -86,12 +86,12 @@ public class CultivatorScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotIndex);
 
-        if (slot.hasStack()) {
-            ItemStack original = slot.getStack();
+        if (slot.hasItem()) {
+            ItemStack original = slot.getItem();
             newStack = original.copy();
 
             int cultivatorSlots = CultivatorBlockEntity.INVENTORY_SIZE;
@@ -99,29 +99,29 @@ public class CultivatorScreenHandler extends ScreenHandler {
 
             if (slotIndex < cultivatorSlots) {
                 // From cultivator to player
-                if (!this.insertItem(original, cultivatorSlots, totalSlots, true)) {
+                if (!this.moveItemStackTo(original, cultivatorSlots, totalSlots, true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
                 // From player to input slot first, then fuel
-                if (!this.insertItem(original, 0, 1, false)) {
-                    if (!this.insertItem(original, 1, 2, false)) {
+                if (!this.moveItemStackTo(original, 0, 1, false)) {
+                    if (!this.moveItemStackTo(original, 1, 2, false)) {
                         return ItemStack.EMPTY;
                     }
                 }
             }
 
             if (original.isEmpty()) {
-                slot.setStack(ItemStack.EMPTY);
+                slot.setByPlayer(ItemStack.EMPTY);
             } else {
-                slot.markDirty();
+                slot.setChanged();
             }
         }
         return newStack;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+    public boolean stillValid(Player player) {
+        return this.inventory.stillValid(player);
     }
 }

@@ -2,59 +2,60 @@ package mod.fossilsarch2.item;
 
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.registry.ModEntities;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.ChatFormatting;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 
 public class DinoEggItem extends Item {
 
-    public DinoEggItem(Settings settings) {
-        super(settings);
+    public DinoEggItem(Properties properties) {
+        super(properties);
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        World world = context.getWorld();
-        if (world.isClient()) return ActionResult.SUCCESS;
+    public InteractionResult useOn(UseOnContext context) {
+        Level level = context.getLevel();
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
 
-        PlayerEntity player = context.getPlayer();
-        ItemStack stack = context.getStack();
-        BlockPos pos = context.getBlockPos().offset(context.getSide());
+        Player player = context.getPlayer();
+        ItemStack stack = context.getItemInHand();
+        BlockPos pos = context.getClickedPos().relative(context.getClickedFace());
 
-        // Derive species from item registry name: "fossilsarch2:{species}_egg" → "{species}"
-        Identifier itemId = Registries.ITEM.getId(stack.getItem());
+        // Derive species from item registry name: "fossilsarch2:{species}_egg" -> "{species}"
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         String path = itemId.getPath();
-        if (!path.endsWith("_egg")) return ActionResult.PASS;
+        if (!path.endsWith("_egg")) return InteractionResult.PASS;
         String species = path.substring(0, path.length() - 4);
 
-        DinoEggEntity egg = new DinoEggEntity(ModEntities.DINO_EGG, world);
-        egg.setPosition(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        DinoEggEntity egg = new DinoEggEntity(ModEntities.DINO_EGG, level);
+        egg.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         egg.setDinoId(species);
         if (player != null) {
-            egg.setOwnerUuid(player.getUuid());
+            egg.setOwnerUuid(player.getUUID());
         }
 
-        world.spawnEntity(egg);
-        stack.decrement(1);
-        return ActionResult.SUCCESS;
+        ((ServerLevel) level).addFreshEntity(egg);
+        stack.shrink(1);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent,
-            Consumer<Text> textConsumer, TooltipType type) {
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
-        textConsumer.accept(Text.translatable("tooltip.fossilsarch2.egg").formatted(Formatting.GRAY));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay displayComponent,
+            Consumer<Component> textConsumer, TooltipFlag type) {
+        super.appendHoverText(stack, context, displayComponent, textConsumer, type);
+        textConsumer.accept(Component.translatable("tooltip.fossilsarch2.egg").withStyle(ChatFormatting.GRAY));
     }
 }

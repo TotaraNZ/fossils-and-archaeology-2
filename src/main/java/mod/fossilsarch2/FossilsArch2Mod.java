@@ -15,7 +15,7 @@ import mod.fossilsarch2.registry.ModSounds;
 import mod.fossilsarch2.world.ModWorldGeneration;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public class FossilsArch2Mod implements ModInitializer {
 
@@ -25,7 +25,7 @@ public class FossilsArch2Mod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		DinosaurJsonLoader.load().forEach(d -> DinosaurRegistry.register(
-				Identifier.of(d.namespace != null ? d.namespace : MOD_ID, d.id), d));
+				Identifier.fromNamespaceAndPath(d.namespace != null ? d.namespace : MOD_ID, d.id), d));
 
 		ModBlocks.init();
 		ModBlockEntities.init();
@@ -45,6 +45,6 @@ public class FossilsArch2Mod implements ModInitializer {
 		ModItemGroups.init();
 
 		// Register network payloads
-		PayloadTypeRegistry.playS2C().register(DinopediaPayload.ID, DinopediaPayload.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(DinopediaPayload.ID, DinopediaPayload.CODEC);
 	}
 }

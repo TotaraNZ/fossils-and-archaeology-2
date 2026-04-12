@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:triceratops_cooked_meat_from_campfire_cooking"
+        "recipe": "fossilsarch2:triceratops_cooked_meat_from_campfire_cooking"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:triceratops_cooked_meat_from_campfire_cooking"
+      "fossilsarch2:triceratops_cooked_meat_from_campfire_cooking"
     ]
   }
 }

@@ -3,28 +3,31 @@ package mod.fossilsarch2.block.entity;
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import mod.fossilsarch2.screen.CultivatorScreenHandler;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
-public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, Inventory {
+public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, Container {
 
     public static final int INPUT_SLOT = 0;
     public static final int FUEL_SLOT = 1;
@@ -32,12 +35,12 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
     public static final int INVENTORY_SIZE = 3;
     public static final int MAX_COOK_TIME = 600; // 30 seconds
 
-    private final DefaultedList<ItemStack> items = DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private int cookTime = 0;
     private int burnTime = 0;
     private int currentItemBurnTime = 0;
 
-    private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
+    private final ContainerData propertyDelegate = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
@@ -59,7 +62,7 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
         }
 
         @Override
-        public int size() {
+        public int getCount() {
             return 4;
         }
     };
@@ -70,71 +73,71 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
 
     // --- Inventory ---
 
-    @Override public int size() { return INVENTORY_SIZE; }
+    @Override public int getContainerSize() { return INVENTORY_SIZE; }
     @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
-    @Override public ItemStack getStack(int slot) { return items.get(slot); }
+    @Override public ItemStack getItem(int slot) { return items.get(slot); }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
-        ItemStack result = Inventories.splitStack(items, slot, amount);
-        if (!result.isEmpty()) markDirty();
+    public ItemStack removeItem(int slot, int amount) {
+        ItemStack result = ContainerHelper.removeItem(items, slot, amount);
+        if (!result.isEmpty()) setChanged();
         return result;
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
-        return Inventories.removeStack(items, slot);
+    public ItemStack removeItemNoUpdate(int slot) {
+        return ContainerHelper.takeItem(items, slot);
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         items.set(slot, stack);
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        return Inventory.canPlayerUse(this, player);
+    public boolean stillValid(Player player) {
+        return Container.stillValidBlockEntity(this, player);
     }
 
-    @Override public void clear() { items.clear(); }
+    @Override public void clearContent() { items.clear(); }
 
     // --- NBT ---
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.writeNbt(nbt, registries);
-        Inventories.writeNbt(nbt, items, registries);
-        nbt.putInt("CookTime", cookTime);
-        nbt.putInt("BurnTime", burnTime);
-        nbt.putInt("CurrentItemBurnTime", currentItemBurnTime);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, items);
+        output.putInt("CookTime", cookTime);
+        output.putInt("BurnTime", burnTime);
+        output.putInt("CurrentItemBurnTime", currentItemBurnTime);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.readNbt(nbt, registries);
-        Inventories.readNbt(nbt, items, registries);
-        cookTime = nbt.getInt("CookTime", 0);
-        burnTime = nbt.getInt("BurnTime", 0);
-        currentItemBurnTime = nbt.getInt("CurrentItemBurnTime", 0);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input, items);
+        cookTime = input.getIntOr("CookTime", 0);
+        burnTime = input.getIntOr("BurnTime", 0);
+        currentItemBurnTime = input.getIntOr("CurrentItemBurnTime", 0);
     }
 
     // --- Screen ---
 
     @Override
-    public Text getDisplayName() {
-        return Text.translatable("block.fossilsarch2.cultivator");
+    public Component getDisplayName() {
+        return Component.translatable("block.fossilsarch2.cultivator");
     }
 
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new CultivatorScreenHandler(syncId, playerInventory, this, propertyDelegate);
     }
 
     // --- Tick ---
 
-    public static void tick(World world, BlockPos pos, BlockState state, CultivatorBlockEntity entity) {
-        if (world.isClient()) return;
+    public static void tick(Level world, BlockPos pos, BlockState state, CultivatorBlockEntity entity) {
+        if (world.isClientSide()) return;
 
         boolean wasBurning = entity.burnTime > 0;
         boolean dirty = false;
@@ -151,7 +154,12 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
                 if (fuelTime > 0) {
                     entity.burnTime = fuelTime;
                     entity.currentItemBurnTime = fuelTime;
-                    entity.items.get(FUEL_SLOT).decrement(1);
+                    ItemStack fuelStack = entity.items.get(FUEL_SLOT);
+                    var remainderTemplate = fuelStack.getItem().getCraftingRemainder();
+                    fuelStack.shrink(1);
+                    if (remainderTemplate != null && fuelStack.isEmpty()) {
+                        entity.items.set(FUEL_SLOT, remainderTemplate.create());
+                    }
                     dirty = true;
                 }
             }
@@ -177,11 +185,11 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
         }
 
         boolean isBurning = entity.burnTime > 0;
-        if (wasBurning != isBurning && state.contains(mod.fossilsarch2.block.CultivatorBlock.LIT)) {
-            world.setBlockState(pos, state.with(mod.fossilsarch2.block.CultivatorBlock.LIT, isBurning), net.minecraft.block.Block.NOTIFY_ALL);
+        if (wasBurning != isBurning && state.hasProperty(mod.fossilsarch2.block.CultivatorBlock.LIT)) {
+            world.setBlock(pos, state.setValue(mod.fossilsarch2.block.CultivatorBlock.LIT, isBurning), Block.UPDATE_ALL);
         }
 
-        if (dirty) entity.markDirty();
+        if (dirty) entity.setChanged();
     }
 
     private boolean canSmelt() {
@@ -193,8 +201,8 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
 
         ItemStack output = items.get(OUTPUT_SLOT);
         if (output.isEmpty()) return true;
-        if (!output.isOf(result.getItem())) return false;
-        return output.getCount() + result.getCount() <= output.getMaxCount();
+        if (!output.is(result.getItem())) return false;
+        return output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
     private void smeltItem() {
@@ -207,19 +215,19 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
         ItemStack output = items.get(OUTPUT_SLOT);
         if (output.isEmpty()) {
             items.set(OUTPUT_SLOT, result.copy());
-        } else if (output.isOf(result.getItem())) {
-            output.increment(result.getCount());
+        } else if (output.is(result.getItem())) {
+            output.grow(result.getCount());
         }
 
-        input.decrement(1);
+        input.shrink(1);
     }
 
     private ItemStack getSmeltResult(ItemStack input) {
         // DNA → egg conversion: fossilsarch2:{species}_dna → fossilsarch2:{species}_egg
         String species = mod.fossilsarch2.dinosaur.DinosaurUtils.getSpeciesFromItem(input);
         if (species != null) {
-            Identifier eggId = Identifier.of(FossilsArch2Mod.MOD_ID, species + "_egg");
-            Item eggItem = Registries.ITEM.get(eggId);
+            Identifier eggId = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, species + "_egg");
+            Item eggItem = BuiltInRegistries.ITEM.getValue(eggId);
             if (eggItem != Items.AIR) {
                 return new ItemStack(eggItem, 1);
             }
@@ -231,13 +239,13 @@ public class CultivatorBlockEntity extends BlockEntity implements NamedScreenHan
         return burnTime > 0;
     }
 
-    private static final net.minecraft.registry.tag.TagKey<Item> FUEL_TAG = net.minecraft.registry.tag.TagKey.of(
-            net.minecraft.registry.RegistryKeys.ITEM,
-            net.minecraft.util.Identifier.of(FossilsArch2Mod.MOD_ID, "cultivator_fuel"));
+    private static final TagKey<Item> FUEL_TAG = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "cultivator_fuel"));
 
     private static int getItemBurnTime(ItemStack stack) {
         if (stack.isEmpty()) return 0;
-        if (stack.isIn(FUEL_TAG)) return 300;
+        if (stack.is(FUEL_TAG)) return 300;
         return 0;
     }
 }

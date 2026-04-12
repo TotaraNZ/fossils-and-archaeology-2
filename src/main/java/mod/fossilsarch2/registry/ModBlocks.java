@@ -11,63 +11,74 @@ import mod.fossilsarch2.block.FeederBlock;
 import mod.fossilsarch2.block.FernBlock;
 import mod.fossilsarch2.block.SuspiciousStoneBlock;
 import mod.fossilsarch2.block.WorktableBlock;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.block.piston.PistonBehavior;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 
 public final class ModBlocks {
 
-        public static Map<RegistryKey<Block>, Block> ALL = new HashMap<>();
+        public static Map<ResourceKey<Block>, Block> ALL = new HashMap<>();
 
         public static final Block SUSPICIOUS_STONE = register(
                         "suspicious_stone",
                         SuspiciousStoneBlock::new,
-                        AbstractBlock.Settings.copy(Blocks.STONE)
-                                .sounds(BlockSoundGroup.STONE)
-                                .pistonBehavior(PistonBehavior.DESTROY));
+                        BlockBehaviour.Properties.ofFullCopy(Blocks.STONE)
+                                .sound(SoundType.STONE)
+                                .pushReaction(PushReaction.DESTROY));
 
         public static final Block ANALYSER = register(
                         "analyser",
                         AnalyserBlock::new,
-                        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).nonOpaque());
+                        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).noOcclusion());
 
         public static final Block CULTIVATOR = register(
                         "cultivator",
                         CultivatorBlock::new,
-                        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).luminance(state ->
-                                state.get(CultivatorBlock.LIT) ? 13 : 0));
+                        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).lightLevel(state ->
+                                state.getValue(CultivatorBlock.LIT) ? 13 : 0));
 
         public static final Block FEEDER = register(
                         "feeder",
                         FeederBlock::new,
-                        AbstractBlock.Settings.copy(Blocks.OAK_PLANKS));
+                        BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS));
 
         public static final Block FERN = register(
                         "fern",
                         FernBlock::new,
-                        AbstractBlock.Settings.copy(Blocks.FERN).ticksRandomly());
+                        BlockBehaviour.Properties.ofFullCopy(Blocks.FERN).randomTicks());
 
         public static final Block WORKTABLE = register(
                         "worktable",
                         WorktableBlock::new,
-                        AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).luminance(state ->
-                                state.get(WorktableBlock.LIT) ? 13 : 0));
+                        BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).lightLevel(state ->
+                                state.getValue(WorktableBlock.LIT) ? 13 : 0));
 
         private static Block register(
                         String path,
-                        Function<AbstractBlock.Settings, Block> factory,
-                        AbstractBlock.Settings settings) {
-                RegistryKey<Block> registryKey = RegistryKey.of(RegistryKeys.BLOCK,
-                                Identifier.of(FossilsArch2Mod.MOD_ID, path));
+                        Function<BlockBehaviour.Properties, Block> factory,
+                        BlockBehaviour.Properties settings) {
+                ResourceKey<Block> registryKey = ResourceKey.create(Registries.BLOCK,
+                                Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path));
 
-                Block block = Blocks.register(registryKey, factory, settings);
-                Items.register(block);
+                settings.setId(registryKey);
+                Block block = factory.apply(settings);
+                Registry.register(BuiltInRegistries.BLOCK, registryKey, block);
+
+                // Register block item
+                ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM,
+                                registryKey.identifier());
+                Item.Properties itemProps = new Item.Properties().setId(itemKey).useBlockDescriptionPrefix();
+                BlockItem blockItem = new BlockItem(block, itemProps);
+                Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
 
                 ALL.put(registryKey, block);
                 return block;

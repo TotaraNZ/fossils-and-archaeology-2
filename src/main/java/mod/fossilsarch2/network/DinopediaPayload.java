@@ -1,22 +1,22 @@
 package mod.fossilsarch2.network;
 
 import mod.fossilsarch2.FossilsArch2Mod;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record DinopediaPayload(int entityId) implements CustomPayload {
+public record DinopediaPayload(int entityId) implements CustomPacketPayload {
 
-    public static final CustomPayload.Id<DinopediaPayload> ID =
-            new CustomPayload.Id<>(Identifier.of(FossilsArch2Mod.MOD_ID, "dinopedia"));
+    public static final CustomPacketPayload.Type<DinopediaPayload> ID =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dinopedia"));
 
-    public static final PacketCodec<RegistryByteBuf, DinopediaPayload> CODEC =
-            PacketCodec.tuple(PacketCodecs.INTEGER, DinopediaPayload::entityId, DinopediaPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, DinopediaPayload> CODEC =
+            StreamCodec.composite(ByteBufCodecs.INT, DinopediaPayload::entityId, DinopediaPayload::new);
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

@@ -1,61 +1,55 @@
 package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.FossilsArch2Mod;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
-public class WorktableScreen extends HandledScreen<WorktableScreenHandler> {
+public class WorktableScreen extends AbstractContainerScreen<WorktableScreenHandler> {
 
     private static final Identifier TEXTURE =
-            Identifier.of(FossilsArch2Mod.MOD_ID, "textures/gui/worktable.png");
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/worktable.png");
 
-    public WorktableScreen(WorktableScreenHandler handler, PlayerInventory inventory, Text title) {
+    public WorktableScreen(WorktableScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
-        this.backgroundWidth = 176;
-        this.backgroundHeight = 166;
     }
 
     @Override
-    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(context, mouseX, mouseY, partialTick);
 
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x, y, 0, 0,
-                this.backgroundWidth, this.backgroundHeight, 256, 256);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0f, 0f,
+                this.imageWidth, this.imageHeight, 256, 256);
 
         // Burn time flame
-        if (handler.isBurning()) {
-            int burnHeight = (int) (12 * handler.getBurnTimeRatio());
-            context.drawTexture(RenderLayer::getGuiTextured, TEXTURE,
+        if (menu.isBurning()) {
+            int burnHeight = (int) (12 * menu.getBurnTimeRatio());
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE,
                     x + 82, y + 36 + 12 - burnHeight,
-                    176, 12 - burnHeight,
+                    176f, (float) (12 - burnHeight),
                     14, burnHeight + 2, 256, 256);
         }
 
         // Cook progress arrow
-        float cookProgress = handler.getCookProgressRatio();
+        float cookProgress = menu.getCookProgressRatio();
         if (cookProgress > 0) {
             int progressWidth = (int) (24 * cookProgress) + 1;
-            context.drawTexture(RenderLayer::getGuiTextured, TEXTURE,
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE,
                     x + 79, y + 18,
-                    176, 14,
+                    176f, 14f,
                     progressWidth, 16, 256, 256);
         }
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        drawMouseoverTooltip(context, mouseX, mouseY);
-    }
-
-    @Override
     protected void init() {
         super.init();
-        titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
+        titleLabelX = (imageWidth - font.width(title)) / 2;
     }
 }

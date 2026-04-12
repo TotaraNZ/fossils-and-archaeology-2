@@ -3,9 +3,9 @@ package mod.fossilsarch2.entity.ai;
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.entity.DinosaurEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.EnumSet;
 
@@ -17,11 +17,11 @@ public class DinoUseFeederGoal extends Goal {
 
     public DinoUseFeederGoal(DinosaurEntity dino) {
         this.dino = dino;
-        this.setControls(EnumSet.of(Control.MOVE));
+        this.setFlags(EnumSet.of(Flag.MOVE));
     }
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         if (cooldown > 0) { cooldown--; return false; }
         if (!dino.isHungry()) return false;
 
@@ -34,24 +34,24 @@ public class DinoUseFeederGoal extends Goal {
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         return dino.isHungry() && feederPos != null;
     }
 
     @Override
     public void start() {
-        dino.getNavigation().startMovingTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5, 1.0);
+        dino.getNavigation().moveTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5, 1.0);
     }
 
     @Override
     public void tick() {
         if (feederPos == null) return;
 
-        double dist = dino.squaredDistanceTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5);
+        double dist = dino.distanceToSqr(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5);
         if (dist < 4.0) {
             // Close enough to eat
-            World world = dino.getWorld();
-            if (world.getBlockEntity(feederPos) instanceof FeederBlockEntity feeder) {
+            Level level = dino.level();
+            if (level.getBlockEntity(feederPos) instanceof FeederBlockEntity feeder) {
                 Dinosaur dinoData = dino.getDinosaur();
                 boolean fed = false;
 
@@ -72,7 +72,7 @@ public class DinoUseFeederGoal extends Goal {
             }
             cooldown = 100; // Don't spam feeder checks
         } else {
-            dino.getNavigation().startMovingTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5, 1.0);
+            dino.getNavigation().moveTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5, 1.0);
         }
     }
 
@@ -83,15 +83,15 @@ public class DinoUseFeederGoal extends Goal {
     }
 
     private BlockPos findNearbyFeeder() {
-        BlockPos dinoPos = dino.getBlockPos();
-        World world = dino.getWorld();
+        BlockPos dinoPos = dino.blockPosition();
+        Level level = dino.level();
 
-        for (BlockPos pos : BlockPos.iterateOutwards(dinoPos, 16, 4, 16)) {
-            if (world.getBlockEntity(pos) instanceof FeederBlockEntity feeder) {
+        for (BlockPos pos : BlockPos.withinManhattan(dinoPos, 16, 4, 16)) {
+            if (level.getBlockEntity(pos) instanceof FeederBlockEntity feeder) {
                 Dinosaur dinoData = dino.getDinosaur();
                 if (dinoData == null) continue;
-                if (dinoData.diet != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) return pos.toImmutable();
-                if (dinoData.diet != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) return pos.toImmutable();
+                if (dinoData.diet != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) return pos.immutable();
+                if (dinoData.diet != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) return pos.immutable();
             }
         }
         return null;
