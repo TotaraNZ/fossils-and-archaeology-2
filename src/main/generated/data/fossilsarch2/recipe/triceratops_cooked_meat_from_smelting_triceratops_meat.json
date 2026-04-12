@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "cookingtime": 200,
+  "experience": 0.35,
+  "group": "triceratops",
+  "ingredient": "fossilsarch2:triceratops_meat",
+  "result": {
+    "id": "fossilsarch2:triceratops_cooked_meat"
+  }
+}

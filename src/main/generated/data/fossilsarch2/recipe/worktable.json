@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:crafting_table",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "P",
+    "C"
+  ],
+  "result": {
+    "count": 1,
+    "id": "fossilsarch2:worktable"
+  }
+}

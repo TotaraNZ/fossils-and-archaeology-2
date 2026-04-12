@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "minecraft:green_dye",
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "W": "minecraft:water_bucket"
+  },
+  "pattern": [
+    "GDG",
+    "GWG",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "fossilsarch2:cultivator"
+  }
+}

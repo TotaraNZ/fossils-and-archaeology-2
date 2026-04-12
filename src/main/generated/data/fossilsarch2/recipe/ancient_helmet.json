@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "fossilsarch2:broken_helmet",
+    "fossilsarch2:scarab_gem"
+  ],
+  "result": {
+    "count": 1,
+    "id": "fossilsarch2:ancient_helmet"
+  }
+}

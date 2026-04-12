@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "minecraft:diamond_hoe",
+    "fossilsarch2:scarab_gem"
+  ],
+  "result": {
+    "count": 1,
+    "id": "fossilsarch2:scarab_hoe"
+  }
+}

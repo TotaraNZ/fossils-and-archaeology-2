@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "fossilsarch2:bio_fossil",
+    "I": "minecraft:iron_ingot",
+    "R": "fossilsarch2:relic"
+  },
+  "pattern": [
+    "IRI",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "fossilsarch2:analyser"
+  }
+}

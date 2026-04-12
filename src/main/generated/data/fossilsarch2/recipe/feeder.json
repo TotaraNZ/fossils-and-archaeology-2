@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bucket",
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:stone",
+    "T": "minecraft:stone_button"
+  },
+  "pattern": [
+    "IGI",
+    "TBS",
+    "SSS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "fossilsarch2:feeder"
+  }
+}
