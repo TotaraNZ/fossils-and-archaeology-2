@@ -28,7 +28,7 @@ public class DinoDefensiveMeleeGoal extends MeleeAttackGoal {
         Dinosaur dinosaur = dino.getDinosaur();
         LivingEntity target = dino.getTarget();
         return dinosaur != null
-                && dinosaur.diet == Dinosaur.Diet.HERBIVORE
+                && dinosaur.diet() == Dinosaur.Diet.HERBIVORE
                 && dino.isDefensivelyMature()
                 && target != null
                 && target.isAlive();

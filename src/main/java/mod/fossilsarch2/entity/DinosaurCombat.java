@@ -24,14 +24,14 @@ public final class DinosaurCombat {
         Dinosaur data = dinosaur.getDinosaur();
         if (data == null) return 1.0;
         double scale = dinosaur.getScaleFactor();
-        return Math.max(0.1, data.width * data.height * scale * scale);
+        return Math.max(0.1, data.growth().width() * data.growth().height() * scale * scale);
     }
 
     public static double getAdultBodyMass(DinosaurEntity dinosaur) {
         Dinosaur data = dinosaur.getDinosaur();
         if (data == null) return 1.0;
-        double scale = data.adult_scale;
-        return Math.max(0.1, data.width * data.height * scale * scale);
+        double scale = data.growth().adultScale();
+        return Math.max(0.1, data.growth().width() * data.growth().height() * scale * scale);
     }
 
     public static double getCombatPower(DinosaurEntity dinosaur) {
@@ -56,33 +56,33 @@ public final class DinosaurCombat {
 
     public static boolean isDefensivelyMature(DinosaurEntity dinosaur) {
         Dinosaur data = dinosaur.getDinosaur();
-        return data != null && dinosaur.getGrowthProgress() >= data.defensive_progress;
+        return data != null && dinosaur.getGrowthProgress() >= data.combat().defensiveProgress();
     }
 
     public static boolean shouldHunt(DinosaurEntity dinosaur, LivingEntity target) {
         Dinosaur data = dinosaur.getDinosaur();
-        if (data == null || data.diet == Dinosaur.Diet.HERBIVORE) return false;
+        if (data == null || data.diet() == Dinosaur.Diet.HERBIVORE) return false;
         if (!isPreyCandidate(target) || isFriendlyOrInvalidTarget(dinosaur, target)) return false;
-        if (dinosaur.getGrowthProgress() < data.min_hunt_progress) return false;
+        if (dinosaur.getGrowthProgress() < data.combat().minHuntProgress()) return false;
 
         CombatEvaluation self = CombatEvaluation.of(dinosaur);
         CombatEvaluation other = CombatEvaluation.of(target);
-        double preyThreshold = data.prey_ratio_max * Math.max(0.35f, data.confidence);
+        double preyThreshold = data.combat().preyRatioMax() * Math.max(0.35f, data.combat().confidence());
         return other.combatPower() <= self.combatPower() * preyThreshold;
     }
 
     public static boolean shouldAttackPlayer(DinosaurEntity dinosaur, Player target) {
         Dinosaur data = dinosaur.getDinosaur();
-        if (data == null || data.diet == Dinosaur.Diet.HERBIVORE) return false;
+        if (data == null || data.diet() == Dinosaur.Diet.HERBIVORE) return false;
         if (target == null || !target.isAlive() || target.isCreative() || target.isSpectator()) return false;
         if (dinosaur.isTame() || !dinosaur.isHungry()) return false;
         if (isFriendlyOrInvalidTarget(dinosaur, target)) return false;
-        if (dinosaur.getGrowthProgress() < data.player_aggression_progress) return false;
+        if (dinosaur.getGrowthProgress() < data.combat().playerAggressionProgress()) return false;
         if (shouldFear(dinosaur, target)) return false;
 
         CombatEvaluation self = CombatEvaluation.of(dinosaur);
         CombatEvaluation other = CombatEvaluation.of(target);
-        double preyThreshold = data.prey_ratio_max * Math.max(0.35f, data.confidence) * 0.9;
+        double preyThreshold = data.combat().preyRatioMax() * Math.max(0.35f, data.combat().confidence()) * 0.9;
         return other.combatPower() <= self.combatPower() * preyThreshold;
     }
 
@@ -99,8 +99,8 @@ public final class DinosaurCombat {
         CombatEvaluation other = CombatEvaluation.of(target);
         if (other.avoidAlways()) return true;
 
-        double fearThreshold = data.fear_ratio / Math.max(0.35f, data.confidence);
-        if (data.diet == Dinosaur.Diet.HERBIVORE && !isDefensivelyMature(dinosaur)) {
+        double fearThreshold = data.combat().fearRatio() / Math.max(0.35f, data.combat().confidence());
+        if (data.diet() == Dinosaur.Diet.HERBIVORE && !isDefensivelyMature(dinosaur)) {
             fearThreshold *= 0.8;
         }
 

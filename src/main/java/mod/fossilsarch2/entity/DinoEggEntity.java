@@ -4,15 +4,14 @@ import java.util.UUID;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
-import mod.fossilsarch2.registry.DinosaurRegistry;
+import mod.fossilsarch2.dinosaur.DinosaurUtils;
 import mod.fossilsarch2.registry.ModEntities;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
-import mod.fossilsarch2.network.DinopediaPayload;
+import mod.fossilsarch2.network.ModNetworking;
 import mod.fossilsarch2.registry.ModAdvancements;
 import mod.fossilsarch2.registry.ModItems;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -63,8 +62,8 @@ public class DinoEggEntity extends Entity implements GeoEntity {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand, net.minecraft.world.phys.Vec3 hitPos) {
-        if (!level().isClientSide() && player.getItemInHand(hand).getItem() == ModItems.DINOPEDIA) {
-            ServerPlayNetworking.send((ServerPlayer) player, new DinopediaPayload(getId()));
+        if (!level().isClientSide() && player.getItemInHand(hand).is(ModItems.DINOPEDIA)) {
+            ModNetworking.sendDinopedia((ServerPlayer) player, getId());
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
@@ -117,7 +116,7 @@ public class DinoEggEntity extends Entity implements GeoEntity {
             return;
         }
 
-        Dinosaur dino = DinosaurRegistry.get(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinoId));
+        Dinosaur dino = DinosaurUtils.getBySpeciesId(level(), dinoId);
         if (dino == null) {
             discard();
             return;
@@ -132,12 +131,12 @@ public class DinoEggEntity extends Entity implements GeoEntity {
             progress--;
         }
 
-        if (progress >= dino.hatch_time) {
+        if (progress >= dino.growth().hatchTime()) {
             hatch(dino);
             return;
         }
 
-        if (progress <= -dino.hatch_time) {
+        if (progress <= -dino.growth().hatchTime()) {
             discard();
             return;
         }
@@ -148,11 +147,12 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     private void hatch(Dinosaur dino) {
         if (!(level() instanceof ServerLevel serverLevel)) return;
 
-        EntityType<DinosaurEntity> entityType = ModEntities.TYPES.get(dino.id);
-        if (entityType == null) {
+        var holder = ModEntities.TYPES.get(getDinoId());
+        if (holder == null) {
             discard();
             return;
         }
+        EntityType<DinosaurEntity> entityType = holder.get();
 
         DinosaurEntity baby = entityType.create(serverLevel, EntitySpawnReason.BREEDING);
         if (baby == null) {

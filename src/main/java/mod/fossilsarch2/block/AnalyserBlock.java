@@ -93,6 +93,6 @@ public class AnalyserBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state,
             BlockEntityType<T> type) {
         return world.isClientSide() ? null
-                : createTickerHelper(type, ModBlockEntities.ANALYSER, AnalyserBlockEntity::tick);
+                : createTickerHelper(type, ModBlockEntities.ANALYSER.get(), AnalyserBlockEntity::tick);
     }
 }

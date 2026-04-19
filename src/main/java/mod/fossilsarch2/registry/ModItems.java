@@ -1,8 +1,9 @@
 package mod.fossilsarch2.registry;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
@@ -11,117 +12,98 @@ import mod.fossilsarch2.item.ItemDinopedia;
 import mod.fossilsarch2.item.RemainderFoodItem;
 import mod.fossilsarch2.item.ScarabGemMaterial;
 import mod.fossilsarch2.item.TooltipItem;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.item.ToolMaterial;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModItems {
 
-    public static final Map<ResourceKey<Item>, Item> ALL = new HashMap<>();
+	private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(FossilsArch2Mod.MOD_ID);
 
-    private static final ToolMaterial SCARAB = ScarabGemMaterial.SCARAB_GEM;
+	private static final ToolMaterial SCARAB = ScarabGemMaterial.SCARAB_GEM;
 
-    // Core items
-    public static final Item BIO_FOSSIL = register("bio_fossil",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.bio_fossil"), new Item.Properties());
-    public static final Item RELIC = register("relic",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.relic"), new Item.Properties());
-    public static final Item SCARAB_GEM = register("scarab_gem",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.scarab_gem"), new Item.Properties());
-    public static final Item DINOPEDIA = register("dinopedia", ItemDinopedia::new, new Item.Properties());
-    public static final Item FERN_SEED = register("fern_seed",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.fern_seed"), new Item.Properties());
-    public static final Item CHICKEN_SOUP_RAW = register("chicken_soup_raw",
-            RemainderFoodItem::new, new Item.Properties()
-                    .food(new FoodProperties.Builder()
-                            .nutrition(4)
-                            .saturationModifier(2.0f)
-                            .build()));
-    public static final Item CHICKEN_SOUP_COOKED = register("chicken_soup_cooked",
-            RemainderFoodItem::new, new Item.Properties()
-                    .food(new FoodProperties.Builder()
-                            .nutrition(8)
-                            .saturationModifier(2.0f)
-                            .build()));
-    public static final Item ESSENCE_CHICKEN = register("essence_chicken",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.essence_chicken"), new Item.Properties());
+	private static final Map<String, DeferredItem<? extends Item>> DINOSAUR_ITEMS = new HashMap<>();
+	private static final Map<String, Dinosaur> DINOSAURS = new LinkedHashMap<>();
 
-    // Ancient artifacts — sword uses applySwordSettings for proper damage/speed
-    public static final Item ANCIENT_SWORD = register("ancient_sword", Item::new,
-            SCARAB.applySwordProperties(new Item.Properties(), 3.0f, -2.4f));
-    public static final Item ANCIENT_HELMET = register("ancient_helmet");
-    public static final Item BROKEN_SWORD = register("broken_sword",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.broken_artifact"), new Item.Properties());
-    public static final Item BROKEN_HELMET = register("broken_helmet",
-            settings -> new TooltipItem(settings, "tooltip.fossilsarch2.broken_artifact"), new Item.Properties());
+	// Core items
+	public static final DeferredItem<TooltipItem> BIO_FOSSIL = ITEMS.registerItem("bio_fossil",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.bio_fossil"));
+	public static final DeferredItem<TooltipItem> RELIC = ITEMS.registerItem("relic",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.relic"));
+	public static final DeferredItem<TooltipItem> SCARAB_GEM = ITEMS.registerItem("scarab_gem",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.scarab_gem"));
+	public static final DeferredItem<ItemDinopedia> DINOPEDIA = ITEMS.registerItem("dinopedia", ItemDinopedia::new);
+	public static final DeferredItem<TooltipItem> FERN_SEED = ITEMS.registerItem("fern_seed",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.fern_seed"));
+	public static final DeferredItem<RemainderFoodItem> CHICKEN_SOUP_RAW = ITEMS.registerItem("chicken_soup_raw",
+			RemainderFoodItem::new,
+			props -> props.food(new FoodProperties.Builder().nutrition(4).saturationModifier(2.0f).build()));
+	public static final DeferredItem<RemainderFoodItem> CHICKEN_SOUP_COOKED = ITEMS.registerItem("chicken_soup_cooked",
+			RemainderFoodItem::new,
+			props -> props.food(new FoodProperties.Builder().nutrition(8).saturationModifier(2.0f).build()));
+	public static final DeferredItem<TooltipItem> ESSENCE_CHICKEN = ITEMS.registerItem("essence_chicken",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.essence_chicken"));
 
-    // Scarab tools
-    public static final Item SCARAB_SWORD = register("scarab_sword", Item::new,
-            SCARAB.applySwordProperties(new Item.Properties(), 3.0f, -2.4f));
-    public static final Item SCARAB_AXE = register("scarab_axe",
-            settings -> new AxeItem(SCARAB, 5.0f, -3.0f, settings), new Item.Properties());
-    public static final Item SCARAB_PICKAXE = register("scarab_pickaxe", Item::new,
-            SCARAB.applyToolProperties(new Item.Properties(), BlockTags.MINEABLE_WITH_PICKAXE, 1.0f, -2.8f, 0.0f));
-    public static final Item SCARAB_SHOVEL = register("scarab_shovel",
-            settings -> new ShovelItem(SCARAB, 1.5f, -3.0f, settings), new Item.Properties());
-    public static final Item SCARAB_HOE = register("scarab_hoe",
-            settings -> new HoeItem(SCARAB, -3.0f, 0.0f, settings), new Item.Properties());
+	// Ancient artifacts
+	public static final DeferredItem<Item> ANCIENT_SWORD = ITEMS.registerItem("ancient_sword",
+			Item::new, props -> props.sword(SCARAB, 3.0f, -2.4f));
+	public static final DeferredItem<Item> ANCIENT_HELMET = ITEMS.registerSimpleItem("ancient_helmet");
+	public static final DeferredItem<TooltipItem> BROKEN_SWORD = ITEMS.registerItem("broken_sword",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.broken_artifact"));
+	public static final DeferredItem<TooltipItem> BROKEN_HELMET = ITEMS.registerItem("broken_helmet",
+			props -> new TooltipItem(props, "tooltip.fossilsarch2.broken_artifact"));
 
-    public static void registerDinosaurItems() {
-        for (Dinosaur d : DinosaurRegistry.all().values()) {
-            // DNA
-            register(d.id + "_dna", settings -> new TooltipItem(settings, "tooltip.fossilsarch2.dna"),
-                    new Item.Properties());
+	// Scarab tools (sword + pickaxe via vanilla property delegates;
+	// axe/shovel/hoe still need subclass instances since their delegates don't exist as Item.Properties methods)
+	public static final DeferredItem<Item> SCARAB_SWORD = ITEMS.registerItem("scarab_sword",
+			Item::new, props -> props.sword(SCARAB, 3.0f, -2.4f));
+	public static final DeferredItem<AxeItem> SCARAB_AXE = ITEMS.registerItem("scarab_axe",
+			props -> new AxeItem(SCARAB, 5.0f, -3.0f, props));
+	public static final DeferredItem<Item> SCARAB_PICKAXE = ITEMS.registerItem("scarab_pickaxe",
+			Item::new, props -> props.pickaxe(SCARAB, 1.0f, -2.8f));
+	public static final DeferredItem<ShovelItem> SCARAB_SHOVEL = ITEMS.registerItem("scarab_shovel",
+			props -> new ShovelItem(SCARAB, 1.5f, -3.0f, props));
+	public static final DeferredItem<HoeItem> SCARAB_HOE = ITEMS.registerItem("scarab_hoe",
+			props -> new HoeItem(SCARAB, -3.0f, 0.0f, props));
 
-            // Egg
-            register(d.id + "_egg", DinoEggItem::new, new Item.Properties().stacksTo(1));
+	public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
+		DINOSAURS.clear();
+		DINOSAURS.putAll(dinosaurs);
+		for (Map.Entry<String, Dinosaur> entry : dinosaurs.entrySet()) {
+			String id = entry.getKey();
+			Dinosaur d = entry.getValue();
+			DINOSAUR_ITEMS.put(id + "_dna", ITEMS.registerItem(id + "_dna",
+					props -> new TooltipItem(props, "tooltip.fossilsarch2.dna")));
+			DINOSAUR_ITEMS.put(id + "_egg", ITEMS.registerItem(id + "_egg",
+					DinoEggItem::new, props -> props.stacksTo(1)));
+			DINOSAUR_ITEMS.put(id + "_meat", ITEMS.registerItem(id + "_meat",
+					Item::new, props -> props.food(new FoodProperties.Builder()
+							.nutrition(d.food().meatNutrition())
+							.saturationModifier(d.food().meatSaturation())
+							.build())));
+			DINOSAUR_ITEMS.put(id + "_cooked_meat", ITEMS.registerItem(id + "_cooked_meat",
+					Item::new, props -> props.food(new FoodProperties.Builder()
+							.nutrition(d.food().cookedMeatNutrition())
+							.saturationModifier(d.food().cookedMeatSaturation())
+							.build())));
+		}
 
-            // Raw meat
-            register(d.id + "_meat", Item::new, new Item.Properties()
-                    .food(new FoodProperties.Builder()
-                            .nutrition(d.meat_nutrition)
-                            .saturationModifier(d.meat_saturation)
-                            .build()));
+		ITEMS.register(modEventBus);
+	}
 
-            // Cooked meat
-            register(d.id + "_cooked_meat", Item::new, new Item.Properties()
-                    .food(new FoodProperties.Builder()
-                            .nutrition(d.cooked_meat_nutrition)
-                            .saturationModifier(d.cooked_meat_saturation)
-                            .build()));
-        }
-    }
+	public static Map<String, Dinosaur> dinosaurs() {
+		return Collections.unmodifiableMap(DINOSAURS);
+	}
 
-    private static Item register(String path) {
-        return register(path, null, null);
-    }
+	public static DeferredItem<? extends Item> dinosaurItem(String key) {
+		return DINOSAUR_ITEMS.get(key);
+	}
 
-    private static Item register(String path, Function<Item.Properties, Item> factory, Item.Properties settings) {
-        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path));
-
-        if (factory == null) {
-            factory = Item::new;
-        }
-
-        if (settings == null) {
-            settings = new Item.Properties();
-        }
-
-        settings.setId(key);
-        Item item = factory.apply(settings);
-        Registry.register(BuiltInRegistries.ITEM, key, item);
-
-        ALL.put(key, item);
-
-        return item;
-    }
+	private ModItems() {}
 }

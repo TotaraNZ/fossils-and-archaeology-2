@@ -114,7 +114,7 @@ public class FernBlock extends BushBlock implements BonemealableBlock {
     private void trySpread(ServerLevel world, BlockPos origin, RandomSource random) {
         BlockPos target = origin.offset(random.nextInt(5) - 2, random.nextInt(3) - 1, random.nextInt(5) - 2);
         if (world.isEmptyBlock(target) && mayPlaceOn(world.getBlockState(target.below()), world, target.below())) {
-            world.setBlock(target, ModBlocks.FERN.defaultBlockState(), Block.UPDATE_CLIENTS);
+            world.setBlock(target, ModBlocks.FERN.get().defaultBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 }

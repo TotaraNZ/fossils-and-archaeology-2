@@ -1,44 +1,51 @@
 package mod.fossilsarch2.registry;
 
+import java.util.function.Supplier;
+
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.block.entity.AnalyserBlockEntity;
 import mod.fossilsarch2.block.entity.CultivatorBlockEntity;
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.block.entity.SuspiciousStoneBlockEntity;
 import mod.fossilsarch2.block.entity.WorktableBlockEntity;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModBlockEntities {
 
-    public static final BlockEntityType<AnalyserBlockEntity> ANALYSER = register(
-            "analyser",
-            FabricBlockEntityTypeBuilder.create(AnalyserBlockEntity::new, ModBlocks.ANALYSER).build());
+	private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
+			DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, FossilsArch2Mod.MOD_ID);
 
-    public static final BlockEntityType<CultivatorBlockEntity> CULTIVATOR = register(
-            "cultivator",
-            FabricBlockEntityTypeBuilder.create(CultivatorBlockEntity::new, ModBlocks.CULTIVATOR).build());
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AnalyserBlockEntity>> ANALYSER =
+			register("analyser", AnalyserBlockEntity::new, ModBlocks.ANALYSER);
 
-    public static final BlockEntityType<FeederBlockEntity> FEEDER = register(
-            "feeder",
-            FabricBlockEntityTypeBuilder.create(FeederBlockEntity::new, ModBlocks.FEEDER).build());
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CultivatorBlockEntity>> CULTIVATOR =
+			register("cultivator", CultivatorBlockEntity::new, ModBlocks.CULTIVATOR);
 
-    public static final BlockEntityType<WorktableBlockEntity> WORKTABLE = register(
-            "worktable",
-            FabricBlockEntityTypeBuilder.create(WorktableBlockEntity::new, ModBlocks.WORKTABLE).build());
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FeederBlockEntity>> FEEDER =
+			register("feeder", FeederBlockEntity::new, ModBlocks.FEEDER);
 
-    public static final BlockEntityType<SuspiciousStoneBlockEntity> SUSPICIOUS_STONE = register(
-            "suspicious_stone",
-            FabricBlockEntityTypeBuilder.create(SuspiciousStoneBlockEntity::new, ModBlocks.SUSPICIOUS_STONE).build());
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WorktableBlockEntity>> WORKTABLE =
+			register("worktable", WorktableBlockEntity::new, ModBlocks.WORKTABLE);
 
-    private static <T extends BlockEntityType<?>> T register(String path, T blockEntityType) {
-        return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path),
-                blockEntityType);
-    }
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SuspiciousStoneBlockEntity>> SUSPICIOUS_STONE =
+			register("suspicious_stone", SuspiciousStoneBlockEntity::new, ModBlocks.SUSPICIOUS_STONE);
 
-    public static void init() {
-    }
+	private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> register(
+			String path,
+			BlockEntityType.BlockEntitySupplier<T> factory,
+			Supplier<? extends Block> block) {
+		return BLOCK_ENTITIES.register(path, () -> new BlockEntityType<>(factory, block.get()));
+	}
+
+	public static void register(IEventBus modEventBus) {
+		BLOCK_ENTITIES.register(modEventBus);
+	}
+
+	private ModBlockEntities() {}
 }

@@ -1,0 +1,33 @@
+{
+    "display_name": "Triceratops",
+    "diet": "HERBIVORE",
+    "combat": {
+        "health": 40.0,
+        "speed": 0.22,
+        "attack_damage": 6.0,
+        "combat_modifier": 1.15,
+        "confidence": 1.1,
+        "defensive_progress": 0.55,
+        "fear_ratio": 1.55
+    },
+    "growth": {
+        "width": 2.0,
+        "height": 1.8,
+        "baby_scale": 0.4,
+        "adult_scale": 1.8,
+        "max_age": 12,
+        "grow_time": 12000,
+        "hatch_time": 3000
+    },
+    "food": {
+        "meat_nutrition": 4,
+        "meat_saturation": 0.4,
+        "cooked_meat_nutrition": 9,
+        "cooked_meat_saturation": 0.9,
+        "meat_drop_count": 4
+    },
+    "animations": {
+        "attack": "eat",
+        "special": ["look"]
+    }
+}

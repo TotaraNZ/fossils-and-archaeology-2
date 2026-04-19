@@ -1,47 +1,45 @@
 package mod.fossilsarch2.registry;
 
-import mod.fossilsarch2.dinosaur.Dinosaur;
-import mod.fossilsarch2.dinosaur.DinosaurUtils;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundEvent;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import mod.fossilsarch2.FossilsArch2Mod;
+import mod.fossilsarch2.dinosaur.Dinosaur;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
 /**
  * Dynamically registers sound events for all dinosaur species.
- * Uses the dinosaur's source namespace so addon mods' sounds are registered correctly.
  */
 public final class ModSounds {
 
-    private static final Map<String, SoundEvent> ALL = new HashMap<>();
+	private static final DeferredRegister<SoundEvent> SOUND_EVENTS =
+			DeferredRegister.create(Registries.SOUND_EVENT, FossilsArch2Mod.MOD_ID);
 
-    public static void registerDinosaurSounds() {
-        for (var entry : DinosaurRegistry.all().entrySet()) {
-            Dinosaur dino = entry.getValue();
-            String ns = DinosaurUtils.getNamespace(dino);
-            registerSound(ns, dino.id + ".ambient");
-            registerSound(ns, dino.id + ".hurt");
-            registerSound(ns, dino.id + ".death");
-        }
-    }
+	private static final Map<String, DeferredHolder<SoundEvent, SoundEvent>> ALL = new HashMap<>();
 
-    private static void registerSound(String namespace, String path) {
-        Identifier id = Identifier.fromNamespaceAndPath(namespace, path);
-        SoundEvent event = SoundEvent.createVariableRangeEvent(id);
-        Registry.register(BuiltInRegistries.SOUND_EVENT, id, event);
-        ALL.put(path, event);
-    }
+	public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
+		for (String id : dinosaurs.keySet()) {
+			registerSound(id + ".ambient");
+			registerSound(id + ".hurt");
+			registerSound(id + ".death");
+		}
+		SOUND_EVENTS.register(modEventBus);
+	}
 
-    public static SoundEvent get(String path) {
-        return ALL.get(path);
-    }
+	private static void registerSound(String path) {
+		Identifier id = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path);
+		ALL.put(path, SOUND_EVENTS.register(path, () -> SoundEvent.createVariableRangeEvent(id)));
+	}
 
-    public static void init() {
-        // Called after dinosaurs are registered
-    }
+	public static SoundEvent get(String path) {
+		DeferredHolder<SoundEvent, SoundEvent> holder = ALL.get(path);
+		return holder != null ? holder.get() : null;
+	}
 
-    private ModSounds() {}
+	private ModSounds() {}
 }

@@ -23,7 +23,7 @@ public class FeederScreenHandler extends AbstractContainerMenu {
 
     public FeederScreenHandler(int syncId, Inventory playerInventory,
                                 Container inventory, ContainerData propertyDelegate) {
-        super(ModScreenHandlers.FEEDER, syncId);
+        super(ModScreenHandlers.FEEDER.get(), syncId);
         checkContainerSize(inventory, FeederBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;

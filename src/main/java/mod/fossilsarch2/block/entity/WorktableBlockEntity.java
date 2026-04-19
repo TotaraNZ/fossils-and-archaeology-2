@@ -23,7 +23,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
+import com.google.common.base.Suppliers;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Worktable repairs broken ancient artifacts using relics as fuel.
@@ -37,11 +39,12 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
     public static final int INVENTORY_SIZE = 3;
     public static final int MAX_COOK_TIME = 3000; // 150 seconds
 
-    // Repair recipes: input item → output item
-    private static final Map<Item, Item> RECIPES = Map.of(
-            ModItems.BROKEN_SWORD, ModItems.ANCIENT_SWORD,
-            ModItems.BROKEN_HELMET, ModItems.ANCIENT_HELMET
-    );
+    // Repair recipes: input item → output item.
+    // Memoized so the DeferredItem.get() calls run after registry freeze, then never again.
+    private static final Supplier<Map<Item, Item>> RECIPES = Suppliers.memoize(() -> Map.of(
+            ModItems.BROKEN_SWORD.get(), ModItems.ANCIENT_SWORD.get(),
+            ModItems.BROKEN_HELMET.get(), ModItems.ANCIENT_HELMET.get()
+    ));
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private int cookTime = 0;
@@ -74,7 +77,7 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
     };
 
     public WorktableBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.WORKTABLE, pos, state);
+        super(ModBlockEntities.WORKTABLE.get(), pos, state);
     }
 
     // --- Inventory ---
@@ -169,7 +172,7 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
     private boolean canSmelt() {
         ItemStack input = items.get(INPUT_SLOT);
         if (input.isEmpty()) return false;
-        Item result = RECIPES.get(input.getItem());
+        Item result = RECIPES.get().get(input.getItem());
         if (result == null) return false;
         ItemStack output = items.get(OUTPUT_SLOT);
         if (output.isEmpty()) return true;
@@ -179,7 +182,7 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
     private void smeltItem() {
         if (!canSmelt()) return;
         ItemStack input = items.get(INPUT_SLOT);
-        Item result = RECIPES.get(input.getItem());
+        Item result = RECIPES.get().get(input.getItem());
         if (result == null) return;
 
         ItemStack output = items.get(OUTPUT_SLOT);

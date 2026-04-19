@@ -72,7 +72,7 @@ public class DinoEatFernGoal extends Goal {
         if (eatingTimer <= 0) {
             Level level = dino.level();
             BlockState state = level.getBlockState(fernPos);
-            if (state.getBlock() == ModBlocks.FERN) {
+            if (state.getBlock() == ModBlocks.FERN.get()) {
                 int age = state.getValue(FernBlock.AGE);
                 if (age > 0) {
                     // Reduce fern age by 1 (eaten down)
@@ -101,7 +101,7 @@ public class DinoEatFernGoal extends Goal {
 
         for (BlockPos pos : BlockPos.withinManhattan(dinoPos, 10, 3, 10)) {
             BlockState state = level.getBlockState(pos);
-            if (state.getBlock() == ModBlocks.FERN && state.getValue(FernBlock.AGE) >= 2) {
+            if (state.getBlock() == ModBlocks.FERN.get() && state.getValue(FernBlock.AGE) >= 2) {
                 return pos.immutable();
             }
         }

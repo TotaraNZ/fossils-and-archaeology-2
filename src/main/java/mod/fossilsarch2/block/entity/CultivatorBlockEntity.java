@@ -68,7 +68,7 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
     };
 
     public CultivatorBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.CULTIVATOR, pos, state);
+        super(ModBlockEntities.CULTIVATOR.get(), pos, state);
     }
 
     // --- Inventory ---

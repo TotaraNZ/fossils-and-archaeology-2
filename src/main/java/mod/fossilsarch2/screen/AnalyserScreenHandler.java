@@ -26,7 +26,7 @@ public class AnalyserScreenHandler extends AbstractContainerMenu {
     // Server constructor
     public AnalyserScreenHandler(int syncId, Inventory playerInventory,
             Container inventory, ContainerData propertyDelegate) {
-        super(ModScreenHandlers.ANALYSER, syncId);
+        super(ModScreenHandlers.ANALYSER.get(), syncId);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
 

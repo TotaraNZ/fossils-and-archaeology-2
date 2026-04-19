@@ -9,14 +9,14 @@ import net.minecraft.resources.Identifier;
 
 public record DinopediaPayload(int entityId) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<DinopediaPayload> ID =
-            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dinopedia"));
+	public static final CustomPacketPayload.Type<DinopediaPayload> TYPE =
+			new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dinopedia"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, DinopediaPayload> CODEC =
-            StreamCodec.composite(ByteBufCodecs.INT, DinopediaPayload::entityId, DinopediaPayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, DinopediaPayload> CODEC =
+			StreamCodec.composite(ByteBufCodecs.INT, DinopediaPayload::entityId, DinopediaPayload::new);
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return ID;
-    }
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
+	}
 }

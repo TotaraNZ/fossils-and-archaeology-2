@@ -5,8 +5,6 @@ import java.util.List;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.block.AnalyserBlock;
-import mod.fossilsarch2.dinosaur.Dinosaur;
-import mod.fossilsarch2.registry.DinosaurRegistry;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import mod.fossilsarch2.registry.ModItems;
 import net.minecraft.core.BlockPos;
@@ -66,7 +64,7 @@ public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Co
     };
 
     public AnalyserBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.ANALYSER, pos, state);
+        super(ModBlockEntities.ANALYSER.get(), pos, state);
     }
 
     // --- Inventory ---
@@ -204,10 +202,11 @@ public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Co
     private ItemStack getProcessResult(ItemStack input) {
         if (input.is(ModItems.BIO_FOSSIL)) {
             // Random DNA from any registered dinosaur
-            List<Dinosaur> dinos = new ArrayList<>(DinosaurRegistry.all().values());
-            if (dinos.isEmpty()) return null;
-            Dinosaur random = dinos.get(level.getRandom().nextInt(dinos.size()));
-            Item dnaItem = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, random.id + "_dna"));
+            var registry = level.registryAccess().lookupOrThrow(mod.fossilsarch2.dinosaur.Dinosaurs.REGISTRY_KEY);
+            List<Identifier> ids = new ArrayList<>(registry.keySet());
+            if (ids.isEmpty()) return null;
+            Identifier randomId = ids.get(level.getRandom().nextInt(ids.size()));
+            Item dnaItem = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, randomId.getPath() + "_dna"));
             if (dnaItem != Items.AIR) {
                 return new ItemStack(dnaItem, 1);
             }

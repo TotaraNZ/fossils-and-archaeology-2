@@ -39,7 +39,7 @@ public record CombatEvaluation(double bodyMass, double combatPower, boolean avoi
         double bodyMass = Math.max(MIN_MASS, dinosaur.getBodyMass());
         double healthFraction = Math.max(0.1, dinosaur.getHealth() / Math.max(1.0, dinosaur.getMaxHealth()));
         double attackDamage = Math.max(0.1, getAttackDamage(dinosaur));
-        double modifier = dinosaur.getDinosaur() != null ? dinosaur.getDinosaur().combat_modifier : 1.0f;
+        double modifier = dinosaur.getDinosaur() != null ? dinosaur.getDinosaur().combat().combatModifier() : 1.0f;
         double combatPower = Math.max(MIN_POWER, bodyMass * attackDamage * healthFraction * modifier);
         return new CombatEvaluation(bodyMass, combatPower, false);
     }

@@ -57,7 +57,7 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
     };
 
     public FeederBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.FEEDER, pos, state);
+        super(ModBlockEntities.FEEDER.get(), pos, state);
     }
 
     // --- Inventory ---

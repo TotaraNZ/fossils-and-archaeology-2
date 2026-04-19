@@ -40,7 +40,7 @@ public class DinoEggItem extends Item {
         if (!path.endsWith("_egg")) return InteractionResult.PASS;
         String species = path.substring(0, path.length() - 4);
 
-        DinoEggEntity egg = new DinoEggEntity(ModEntities.DINO_EGG, level);
+        DinoEggEntity egg = new DinoEggEntity(ModEntities.DINO_EGG.get(), level);
         egg.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         egg.setDinoId(species);
         if (player != null) {

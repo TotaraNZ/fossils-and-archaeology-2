@@ -23,7 +23,7 @@ public class WorktableScreenHandler extends AbstractContainerMenu {
 
     public WorktableScreenHandler(int syncId, Inventory playerInventory,
                                    Container inventory, ContainerData propertyDelegate) {
-        super(ModScreenHandlers.WORKTABLE, syncId);
+        super(ModScreenHandlers.WORKTABLE.get(), syncId);
         checkContainerSize(inventory, WorktableBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;

@@ -56,7 +56,7 @@ public class SuspiciousStoneBlockEntity extends BlockEntity {
     private long lootTableSeed;
 
     public SuspiciousStoneBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.SUSPICIOUS_STONE, pos, state);
+        super(ModBlockEntities.SUSPICIOUS_STONE.get(), pos, state);
         setLootTable(DEFAULT_LOOT_TABLE, ThreadLocalRandom.current().nextLong());
     }
 

@@ -26,7 +26,7 @@ public class CultivatorScreenHandler extends AbstractContainerMenu {
     // Server constructor
     public CultivatorScreenHandler(int syncId, Inventory playerInventory,
                                     Container inventory, ContainerData propertyDelegate) {
-        super(ModScreenHandlers.CULTIVATOR, syncId);
+        super(ModScreenHandlers.CULTIVATOR.get(), syncId);
         checkContainerSize(inventory, CultivatorBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;

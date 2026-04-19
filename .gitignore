@@ -6,8 +6,9 @@ bin/
 # Runtime
 run/
 
-# Data generation output
-src/main/generated/.cache/
+# Data generation output (HashCache files; the generated JSON itself is committed)
+src/generated/client/.cache/
+src/generated/server/.cache/
 .apt_generated/
 
 # IDE

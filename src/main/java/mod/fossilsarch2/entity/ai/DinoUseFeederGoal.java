@@ -55,12 +55,12 @@ public class DinoUseFeederGoal extends Goal {
                 Dinosaur dinoData = dino.getDinosaur();
                 boolean fed = false;
 
-                if (dinoData != null && dinoData.diet != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) {
+                if (dinoData != null && dinoData.diet() != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) {
                     feeder.consumeMeat(20);
                     dino.feed(20);
                     fed = true;
                 }
-                if (dinoData != null && dinoData.diet != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) {
+                if (dinoData != null && dinoData.diet() != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) {
                     feeder.consumeVeg(20);
                     dino.feed(20);
                     fed = true;
@@ -90,8 +90,8 @@ public class DinoUseFeederGoal extends Goal {
             if (level.getBlockEntity(pos) instanceof FeederBlockEntity feeder) {
                 Dinosaur dinoData = dino.getDinosaur();
                 if (dinoData == null) continue;
-                if (dinoData.diet != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) return pos.immutable();
-                if (dinoData.diet != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) return pos.immutable();
+                if (dinoData.diet() != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) return pos.immutable();
+                if (dinoData.diet() != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) return pos.immutable();
             }
         }
         return null;
