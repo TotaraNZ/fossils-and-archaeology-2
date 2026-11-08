@@ -135,8 +135,7 @@ public class DinopediaScreen extends Screen {
     }
 
     private void renderEggPage(GuiGraphicsExtractor context, int gx, int gy) {
-        String dinoId = egg.getDinoId();
-        Dinosaur dino = mod.fossilsarch2.dinosaur.DinosaurUtils.getBySpeciesId(egg.level(), dinoId);
+        Dinosaur dino = egg.getDinosaur();
         if (dino == null) return;
 
         // Egg page: PrintStringLR positions at x = 70 + 81 = 151, y = 12*(line+1)

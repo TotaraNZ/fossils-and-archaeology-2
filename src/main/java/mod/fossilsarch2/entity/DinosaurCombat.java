@@ -61,7 +61,9 @@ public final class DinosaurCombat {
 
     public static boolean shouldHunt(DinosaurEntity dinosaur, LivingEntity target) {
         Dinosaur data = dinosaur.getDinosaur();
-        if (data == null || data.diet() == Dinosaur.Diet.HERBIVORE) return false;
+        if (data == null || !data.diet().eatsMeat()) return false;
+        // Predators hunt to eat: a sated dinosaur leaves livestock and pets alone.
+        if (!dinosaur.isHungry()) return false;
         if (!isPreyCandidate(target) || isFriendlyOrInvalidTarget(dinosaur, target)) return false;
         if (dinosaur.getGrowthProgress() < data.combat().minHuntProgress()) return false;
 
@@ -73,7 +75,7 @@ public final class DinosaurCombat {
 
     public static boolean shouldAttackPlayer(DinosaurEntity dinosaur, Player target) {
         Dinosaur data = dinosaur.getDinosaur();
-        if (data == null || data.diet() == Dinosaur.Diet.HERBIVORE) return false;
+        if (data == null || !data.diet().eatsMeat()) return false;
         if (target == null || !target.isAlive() || target.isCreative() || target.isSpectator()) return false;
         if (dinosaur.isTame() || !dinosaur.isHungry()) return false;
         if (isFriendlyOrInvalidTarget(dinosaur, target)) return false;
@@ -124,7 +126,7 @@ public final class DinosaurCombat {
         }
 
         if (target instanceof DinosaurEntity other) {
-            if (other.getDinosaurId().equals(dinosaur.getDinosaurId())) {
+            if (other.getSpeciesId().equals(dinosaur.getSpeciesId())) {
                 return true;
             }
 

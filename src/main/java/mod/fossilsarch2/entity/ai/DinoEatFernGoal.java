@@ -3,109 +3,55 @@ package mod.fossilsarch2.entity.ai;
 import mod.fossilsarch2.block.FernBlock;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import mod.fossilsarch2.registry.ModBlocks;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-
-import java.util.EnumSet;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Herbivore/omnivore dinosaurs eat mature fern blocks to restore hunger.
- * Follows the same pattern as vanilla EatGrassGoal.
+ * Plant-eating dinosaurs graze mature fern blocks to restore hunger, eating them down one
+ * growth stage at a time. Only added for diets that eat plants.
  */
-public class DinoEatFernGoal extends Goal {
+public class DinoEatFernGoal extends DinoFoodSourceGoal {
 
-    private final DinosaurEntity dino;
-    private BlockPos fernPos;
-    private int eatingTimer;
-    private int searchCooldown;
+    private static final int MIN_EDIBLE_AGE = 2;
+    private static final int NUTRITION = 15;
 
     public DinoEatFernGoal(DinosaurEntity dino) {
-        this.dino = dino;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        super(dino, 60);
     }
 
     @Override
-    public boolean canUse() {
-        if (searchCooldown > 0) { searchCooldown--; return false; }
-        if (!dino.isHungry()) return false;
-        fernPos = findNearbyFern();
-        if (fernPos == null) {
-            searchCooldown = 40;
-            return false;
-        }
-        return true;
+    protected @Nullable BlockPos findFood() {
+        return searchNearby(10, 3, this::isMatureFern);
     }
 
     @Override
-    public boolean canContinueToUse() {
-        return fernPos != null && eatingTimer > 0;
+    protected boolean hasFood(BlockPos pos) {
+        return dino.level().getBlockState(pos).is(ModBlocks.FERN.get());
+    }
+
+    private boolean isMatureFern(BlockPos pos) {
+        BlockState state = dino.level().getBlockState(pos);
+        return state.is(ModBlocks.FERN.get()) && state.getValue(FernBlock.AGE) >= MIN_EDIBLE_AGE;
     }
 
     @Override
-    public void start() {
-        eatingTimer = 40; // 2 seconds to eat
-        dino.getNavigation().moveTo(
-                fernPos.getX() + 0.5, fernPos.getY(), fernPos.getZ() + 0.5, 1.0);
+    protected int eatDuration() {
+        return 40;
     }
 
     @Override
-    public void tick() {
-        if (fernPos == null) return;
-
-        double dist = dino.distanceToSqr(
-                fernPos.getX() + 0.5, fernPos.getY() + 0.5, fernPos.getZ() + 0.5);
-
-        if (dist > 4.0) {
-            dino.getNavigation().moveTo(
-                    fernPos.getX() + 0.5, fernPos.getY(), fernPos.getZ() + 0.5, 1.0);
-            return;
-        }
-
-        // Close enough — look at the fern and eat
-        dino.getLookControl().setLookAt(fernPos.getX() + 0.5, fernPos.getY() + 0.5, fernPos.getZ() + 0.5);
-        dino.getNavigation().stop();
-        dino.setEating(true);
-        eatingTimer--;
-
-        if (eatingTimer <= 0) {
-            Level level = dino.level();
-            BlockState state = level.getBlockState(fernPos);
-            if (state.getBlock() == ModBlocks.FERN.get()) {
-                int age = state.getValue(FernBlock.AGE);
-                if (age > 0) {
-                    // Reduce fern age by 1 (eaten down)
-                    level.setBlockAndUpdate(fernPos, state.setValue(FernBlock.AGE, age - 1));
-                } else {
-                    // Destroy seedling
-                    level.destroyBlock(fernPos, false, dino, 0);
-                }
-                dino.feed(15);
-            }
-            fernPos = null;
-        }
-    }
-
-    @Override
-    public void stop() {
-        fernPos = null;
-        eatingTimer = 0;
-        dino.setEating(false);
-        searchCooldown = 60;
-    }
-
-    private BlockPos findNearbyFern() {
-        BlockPos dinoPos = dino.blockPosition();
+    protected void eat(BlockPos pos) {
         Level level = dino.level();
-
-        for (BlockPos pos : BlockPos.withinManhattan(dinoPos, 10)) {
-            if (Math.abs(pos.getY() - dinoPos.getY()) > 3) continue;
-            BlockState state = level.getBlockState(pos);
-            if (state.getBlock() == ModBlocks.FERN.get() && state.getValue(FernBlock.AGE) >= 2) {
-                return pos.immutable();
-            }
+        BlockState state = level.getBlockState(pos);
+        int age = state.getValue(FernBlock.AGE);
+        if (age > 0) {
+            level.setBlockAndUpdate(pos, state.setValue(FernBlock.AGE, age - 1));
+        } else {
+            level.destroyBlock(pos, false, dino, 0);
         }
-        return null;
+        dino.feed(NUTRITION);
+        target = null; // one bite per approach; search again if still hungry
     }
 }

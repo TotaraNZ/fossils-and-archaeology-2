@@ -6,26 +6,28 @@ import net.minecraft.resources.Identifier;
 import com.geckolib.model.GeoModel;
 import com.geckolib.renderer.base.GeoRenderState;
 
+/** Shared egg model; the per-species texture ({@code textures/entity/egg/<path>.png}) comes from the render state. */
 public class DinoEggModel extends GeoModel<DinoEggEntity> {
 
-    private String currentDinoId = "triceratops";
+    private static final Identifier MODEL = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg");
+    private static final Identifier FALLBACK_TEXTURE = texture(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "triceratops"));
 
-    public void setDinoId(String dinoId) {
-        this.currentDinoId = dinoId;
+    public static Identifier texture(Identifier speciesId) {
+        return speciesId.withPath("textures/entity/egg/" + speciesId.getPath() + ".png");
     }
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
-        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg");
+        return MODEL;
     }
 
     @Override
     public Identifier getTextureResource(GeoRenderState renderState) {
-        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/entity/egg/" + currentDinoId + ".png");
+        return renderState.getOrDefaultGeckolibData(ModRenderData.TEXTURE, FALLBACK_TEXTURE);
     }
 
     @Override
     public Identifier getAnimationResource(DinoEggEntity animatable) {
-        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg");
+        return MODEL;
     }
 }

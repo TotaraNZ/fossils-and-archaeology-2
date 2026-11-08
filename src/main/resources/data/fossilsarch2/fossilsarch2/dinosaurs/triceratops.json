@@ -1,6 +1,6 @@
 {
     "display_name": "Triceratops",
-    "diet": "HERBIVORE",
+    "diet": "herbivore",
     "combat": {
         "health": 40.0,
         "speed": 0.22,

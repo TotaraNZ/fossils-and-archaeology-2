@@ -5,7 +5,6 @@ import java.util.UUID;
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.dinosaur.DinosaurUtils;
-import mod.fossilsarch2.registry.ModEntities;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -24,6 +23,8 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.Level;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -75,12 +76,17 @@ public class DinoEggEntity extends Entity implements GeoEntity {
         builder.define(HATCH_PROGRESS, 0);
     }
 
-    public String getDinoId() {
-        return entityData.get(DINO_ID);
+    /** The species this egg hatches into, e.g. {@code fossilsarch2:triceratops}. */
+    public @Nullable Identifier getSpeciesId() {
+        return DinosaurUtils.parseSpeciesId(entityData.get(DINO_ID));
     }
 
-    public void setDinoId(String id) {
-        entityData.set(DINO_ID, id);
+    public void setSpeciesId(Identifier speciesId) {
+        entityData.set(DINO_ID, speciesId.toString());
+    }
+
+    public @Nullable Dinosaur getDinosaur() {
+        return DinosaurUtils.get(level(), getSpeciesId());
     }
 
     public int getHatchProgress() {
@@ -110,13 +116,7 @@ public class DinoEggEntity extends Entity implements GeoEntity {
         super.tick();
         if (level().isClientSide()) return;
 
-        String dinoId = getDinoId();
-        if (dinoId.isEmpty()) {
-            discard();
-            return;
-        }
-
-        Dinosaur dino = DinosaurUtils.getBySpeciesId(level(), dinoId);
+        Dinosaur dino = getDinosaur();
         if (dino == null) {
             discard();
             return;
@@ -147,15 +147,10 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     private void hatch(Dinosaur dino) {
         if (!(level() instanceof ServerLevel serverLevel)) return;
 
-        var holder = ModEntities.TYPES.get(getDinoId());
-        if (holder == null) {
-            discard();
-            return;
-        }
-        EntityType<DinosaurEntity> entityType = holder.get();
-
-        DinosaurEntity baby = entityType.create(serverLevel, EntitySpawnReason.BREEDING);
-        if (baby == null) {
+        // Species and entity type share an ID, so addon species hatch into their own entity type.
+        Identifier speciesId = getSpeciesId();
+        EntityType<?> entityType = speciesId != null ? BuiltInRegistries.ENTITY_TYPE.getValue(speciesId) : null;
+        if (entityType == null || !(entityType.create(serverLevel, EntitySpawnReason.BREEDING) instanceof DinosaurEntity baby)) {
             discard();
             return;
         }
@@ -194,7 +189,8 @@ public class DinoEggEntity extends Entity implements GeoEntity {
         int savedVersion = input.getIntOr("FA2DataVersion", 0);
         // if (savedVersion < 2) { ... }
 
-        setDinoId(input.getStringOr("DinoId", ""));
+        // Pre-namespace saves stored a bare path ("triceratops"); parseSpeciesId defaults the namespace.
+        entityData.set(DINO_ID, input.getStringOr("DinoId", ""));
         setHatchProgress(input.getIntOr("HatchProgress", 0));
         input.getString("OwnerUUID").ifPresent(s -> {
             try { ownerUuid = UUID.fromString(s); } catch (IllegalArgumentException ignored) {}
@@ -204,7 +200,7 @@ public class DinoEggEntity extends Entity implements GeoEntity {
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         output.putInt("FA2DataVersion", CURRENT_DATA_VERSION);
-        output.putString("DinoId", getDinoId());
+        output.putString("DinoId", entityData.get(DINO_ID));
         output.putInt("HatchProgress", getHatchProgress());
         if (ownerUuid != null) {
             output.putString("OwnerUUID", ownerUuid.toString());

@@ -155,7 +155,7 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
                     entity.burnTime = fuelTime;
                     entity.currentItemBurnTime = fuelTime;
                     ItemStack fuelStack = entity.items.get(FUEL_SLOT);
-                    var remainderTemplate = fuelStack.getItem().getCraftingRemainder();
+                    var remainderTemplate = fuelStack.getCraftingRemainder();
                     fuelStack.shrink(1);
                     if (remainderTemplate != null && fuelStack.isEmpty()) {
                         entity.items.set(FUEL_SLOT, remainderTemplate.create());
@@ -223,11 +223,10 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
     }
 
     private ItemStack getSmeltResult(ItemStack input) {
-        // DNA → egg conversion: fossilsarch2:{species}_dna → fossilsarch2:{species}_egg
-        String species = mod.fossilsarch2.dinosaur.DinosaurUtils.getSpeciesFromItem(input);
-        if (species != null) {
-            Identifier eggId = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, species + "_egg");
-            Item eggItem = BuiltInRegistries.ITEM.getValue(eggId);
+        // DNA → egg conversion: {ns}:{species}_dna → {ns}:{species}_egg
+        Identifier species = mod.fossilsarch2.dinosaur.DinosaurUtils.getSpeciesFromItem(input);
+        if (species != null && input.getItem() == BuiltInRegistries.ITEM.getValue(species.withSuffix("_dna"))) {
+            Item eggItem = BuiltInRegistries.ITEM.getValue(species.withSuffix("_egg"));
             if (eggItem != Items.AIR) {
                 return new ItemStack(eggItem, 1);
             }

@@ -17,6 +17,7 @@ import mod.fossilsarch2.screen.AnalyserScreen;
 import mod.fossilsarch2.screen.CultivatorScreen;
 import mod.fossilsarch2.screen.FeederScreen;
 import mod.fossilsarch2.screen.WorktableScreen;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -51,9 +52,9 @@ public final class FossilsArch2Client {
 
 	private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
 		for (Map.Entry<String, DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>>> entry : ModEntities.TYPES.entrySet()) {
-			String dinosaurId = entry.getKey();
+			Identifier speciesId = entry.getValue().getId();
 			event.registerEntityRenderer(entry.getValue().get(),
-					ctx -> new DinosaurRenderer<>(ctx, dinosaurId));
+					ctx -> new DinosaurRenderer<>(ctx, speciesId));
 		}
 		event.registerEntityRenderer(ModEntities.DINO_EGG.get(), DinoEggRenderer::new);
 	}

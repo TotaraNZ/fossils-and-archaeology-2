@@ -170,10 +170,7 @@ public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Co
     }
 
     private boolean isValidInput(ItemStack stack) {
-        if (stack.is(ModItems.BIO_FOSSIL)) return true;
-        // Check if it's a dinosaur meat item
-        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return id.getNamespace().equals(FossilsArch2Mod.MOD_ID) && id.getPath().endsWith("_meat");
+        return stack.is(ModItems.BIO_FOSSIL) || stack.is(mod.fossilsarch2.registry.ModItemTags.DINO_MEAT);
     }
 
     private void processItem(int slot) {
@@ -206,16 +203,16 @@ public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Co
             List<Identifier> ids = new ArrayList<>(registry.keySet());
             if (ids.isEmpty()) return null;
             Identifier randomId = ids.get(level.getRandom().nextInt(ids.size()));
-            Item dnaItem = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, randomId.getPath() + "_dna"));
+            Item dnaItem = BuiltInRegistries.ITEM.getValue(randomId.withSuffix("_dna"));
             if (dnaItem != Items.AIR) {
                 return new ItemStack(dnaItem, 1);
             }
         }
 
         // Meat → species DNA
-        String species = mod.fossilsarch2.dinosaur.DinosaurUtils.getSpeciesFromItem(input);
+        Identifier species = mod.fossilsarch2.dinosaur.DinosaurUtils.getSpeciesFromItem(input);
         if (species != null) {
-            Item dnaItem = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, species + "_dna"));
+            Item dnaItem = BuiltInRegistries.ITEM.getValue(species.withSuffix("_dna"));
             if (dnaItem != Items.AIR) {
                 return new ItemStack(dnaItem, 4);
             }

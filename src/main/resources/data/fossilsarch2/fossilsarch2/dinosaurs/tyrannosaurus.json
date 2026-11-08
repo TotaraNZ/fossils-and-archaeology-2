@@ -1,6 +1,6 @@
 {
     "display_name": "Tyrannosaurus",
-    "diet": "CARNIVORE",
+    "diet": "carnivore",
     "combat": {
         "health": 60.0,
         "speed": 0.26,
@@ -29,6 +29,7 @@
         "meat_drop_count": 5
     },
     "animations": {
+        "eat": "",
         "special": ["sniff"]
     }
 }

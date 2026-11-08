@@ -3,98 +3,45 @@ package mod.fossilsarch2.entity.ai;
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.entity.DinosaurEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
-import java.util.EnumSet;
+/** Hungry dinosaurs eat from a nearby feeder holding food their diet allows, until full. */
+public class DinoUseFeederGoal extends DinoFoodSourceGoal {
 
-public class DinoUseFeederGoal extends Goal {
-
-    private final DinosaurEntity dino;
-    private BlockPos feederPos;
-    private int cooldown = 0;
+    private static final int NUTRITION_PER_BITE = 20;
 
     public DinoUseFeederGoal(DinosaurEntity dino) {
-        this.dino = dino;
-        this.setFlags(EnumSet.of(Flag.MOVE));
+        super(dino, 100);
     }
 
     @Override
-    public boolean canUse() {
-        if (cooldown > 0) { cooldown--; return false; }
-        if (!dino.isHungry()) return false;
+    protected @Nullable BlockPos findFood() {
+        return searchNearby(16, 4, this::hasFood);
+    }
 
-        feederPos = findNearbyFeeder();
-        if (feederPos == null) {
-            cooldown = 60;
-            return false;
+    @Override
+    protected boolean hasFood(BlockPos pos) {
+        Dinosaur data = dino.getDinosaur();
+        return data != null && dino.level().getBlockEntity(pos) instanceof FeederBlockEntity feeder
+                && ((data.diet().eatsMeat() && feeder.hasMeat()) || (data.diet().eatsPlants() && feeder.hasVeg()));
+    }
+
+    @Override
+    protected int eatDuration() {
+        return 20;
+    }
+
+    @Override
+    protected void eat(BlockPos pos) {
+        Dinosaur data = dino.getDinosaur();
+        if (data == null || !(dino.level().getBlockEntity(pos) instanceof FeederBlockEntity feeder)) return;
+        if (data.diet().eatsMeat() && feeder.hasMeat()) {
+            feeder.consumeMeat(NUTRITION_PER_BITE);
+            dino.feed(NUTRITION_PER_BITE);
+        } else if (data.diet().eatsPlants() && feeder.hasVeg()) {
+            feeder.consumeVeg(NUTRITION_PER_BITE);
+            dino.feed(NUTRITION_PER_BITE);
         }
-        return true;
-    }
-
-    @Override
-    public boolean canContinueToUse() {
-        return dino.isHungry() && feederPos != null;
-    }
-
-    @Override
-    public void start() {
-        dino.getNavigation().moveTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5, 1.0);
-    }
-
-    @Override
-    public void tick() {
-        if (feederPos == null) return;
-
-        double dist = dino.distanceToSqr(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5);
-        if (dist < 4.0) {
-            // Close enough to eat
-            Level level = dino.level();
-            if (level.getBlockEntity(feederPos) instanceof FeederBlockEntity feeder) {
-                Dinosaur dinoData = dino.getDinosaur();
-                boolean fed = false;
-
-                if (dinoData != null && dinoData.diet() != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) {
-                    feeder.consumeMeat(20);
-                    dino.feed(20);
-                    fed = true;
-                }
-                if (dinoData != null && dinoData.diet() != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) {
-                    feeder.consumeVeg(20);
-                    dino.feed(20);
-                    fed = true;
-                }
-
-                if (!fed) feederPos = null;
-            } else {
-                feederPos = null;
-            }
-            cooldown = 100; // Don't spam feeder checks
-        } else {
-            dino.getNavigation().moveTo(feederPos.getX() + 0.5, feederPos.getY(), feederPos.getZ() + 0.5, 1.0);
-        }
-    }
-
-    @Override
-    public void stop() {
-        feederPos = null;
-        cooldown = 200;
-    }
-
-    private BlockPos findNearbyFeeder() {
-        BlockPos dinoPos = dino.blockPosition();
-        Level level = dino.level();
-
-        for (BlockPos pos : BlockPos.withinManhattan(dinoPos, 16)) {
-            if (Math.abs(pos.getY() - dinoPos.getY()) > 4) continue;
-            if (level.getBlockEntity(pos) instanceof FeederBlockEntity feeder) {
-                Dinosaur dinoData = dino.getDinosaur();
-                if (dinoData == null) continue;
-                if (dinoData.diet() != Dinosaur.Diet.HERBIVORE && feeder.hasMeat()) return pos.immutable();
-                if (dinoData.diet() != Dinosaur.Diet.CARNIVORE && feeder.hasVeg()) return pos.immutable();
-            }
-        }
-        return null;
     }
 }

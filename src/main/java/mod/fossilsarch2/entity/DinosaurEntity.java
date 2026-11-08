@@ -5,7 +5,10 @@ import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.entity.ai.DinoDefensiveMeleeGoal;
 import mod.fossilsarch2.entity.ai.DinoEatFernGoal;
 import mod.fossilsarch2.entity.ai.DinoUseFeederGoal;
+import mod.fossilsarch2.dinosaur.DinosaurUtils;
+import mod.fossilsarch2.registry.ModItemTags;
 import mod.fossilsarch2.registry.ModItems;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -63,13 +66,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         ADULT
     }
 
-    protected static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("walk");
-    protected static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("idle");
-    protected static final RawAnimation BITE_ANIM = RawAnimation.begin().thenPlay("bite");
-    protected static final RawAnimation EAT_ANIM = RawAnimation.begin().thenPlay("eat");
-    protected static final RawAnimation SNIFF_ANIM = RawAnimation.begin().thenPlay("sniff");
-    protected static final RawAnimation LOOK_ANIM = RawAnimation.begin().thenPlay("look");
-
+    private static final String ATTACK_CONTROLLER = "Attack";
+    private static final String ATTACK_TRIGGER = "attack";
     private static final String SPECIAL_CONTROLLER = "Special";
     private int specialAnimCooldown = 0;
 
@@ -87,15 +85,23 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     // Bump on NBT schema changes; migrate in readAdditionalSaveData
     private static final int CURRENT_DATA_VERSION = 1;
 
-    private final String dinosaurId;
+    private static final String GROWTH_TICKS_KEY = "GrowthTicks";
+
+    /** Species ID; always equal to this entity's type ID (e.g. {@code fossilsarch2:triceratops}). */
+    private final Identifier speciesId;
+    private @Nullable Dinosaur cachedDinosaur;
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
+    /** Ticks accumulated toward the next age stage. Saved, so growth survives chunk unloads. */
+    private int growthTicks;
+    /** Growth-derived attributes are applied once on the first server tick (covers /summon and spawn eggs). */
+    private boolean growthStatsApplied;
 
     public DinosaurEntity(EntityType<? extends DinosaurEntity> type, Level level) {
         super(type, level);
-        Identifier id = EntityType.getKey(type);
-        this.dinosaurId = id != null ? id.getPath() : "";
+        this.speciesId = EntityType.getKey(type);
 
-        // registerGoals() is called from super() before dinosaurId is set,
+        // registerGoals() is called from super() before speciesId is set,
         // so diet-dependent goals must be added here after construction
         setupDietGoals();
 
@@ -117,10 +123,9 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
     @Override
     protected void registerGoals() {
-        // Only register diet-independent goals here (dinosaurId is null at this point)
+        // Only register diet-independent goals here (speciesId is null at this point)
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(3, new DinoUseFeederGoal(this));
-        this.goalSelector.addGoal(4, new DinoEatFernGoal(this));
         this.goalSelector.addGoal(5, new TemptGoal(this, 1.1D, stack -> stack.is(ModItems.FERN_SEED), false));
         this.goalSelector.addGoal(6, new FollowOwnerGoal(this, 1.0D, 10.0F, 2.0F));
         this.goalSelector.addGoal(7, new FollowParentGoal(this, 1.0D));
@@ -136,14 +141,18 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     private void setupDietGoals() {
         Dinosaur dino = getDinosaur();
         if (dino == null) {
-            FossilsArch2Mod.LOGGER.warn("setupDietGoals: getDinosaur() returned null for dinosaurId='{}'", dinosaurId);
+            FossilsArch2Mod.LOGGER.warn("setupDietGoals: no dinosaur data for species '{}'", speciesId);
             return;
         }
         Dinosaur.Diet diet = dino.diet();
         this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, LivingEntity.class, 10.0f, 1.0D,
                 Math.max(1.15f, dino.combat().fleeSpeed()), this::shouldFear));
 
-        if (diet == Dinosaur.Diet.CARNIVORE || diet == Dinosaur.Diet.OMNIVORE) {
+        if (diet.eatsPlants()) {
+            this.goalSelector.addGoal(4, new DinoEatFernGoal(this));
+        }
+
+        if (diet.eatsMeat()) {
             this.goalSelector.addGoal(2, new MeleeAttackGoal(this, dino.combat().chaseSpeed(), false));
             this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, 10, false, false,
                     (target, level) -> this.shouldHunt(target)));
@@ -180,14 +189,19 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
     // --- Dinosaur Data ---
 
-    public String getDinosaurId() {
-        return dinosaurId;
+    public Identifier getSpeciesId() {
+        return speciesId;
     }
 
-    public Dinosaur getDinosaur() {
-        if (dinosaurId == null || dinosaurId.isEmpty()) return null;
-        // Look up by species ID across all namespaces (supports addon mods)
-        return mod.fossilsarch2.dinosaur.DinosaurUtils.getBySpeciesId(level(), dinosaurId);
+    /**
+     * The species data for this entity. Dinosaur entries live in a world-layer datapack registry,
+     * which is fixed for the lifetime of a level, so the lookup is cached.
+     */
+    public @Nullable Dinosaur getDinosaur() {
+        if (cachedDinosaur == null && speciesId != null) {
+            cachedDinosaur = DinosaurUtils.get(level(), speciesId);
+        }
+        return cachedDinosaur;
     }
 
     public String getVariant() {
@@ -207,14 +221,13 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     public void setDinoAge(int age) {
         Dinosaur dino = getDinosaur();
         int clampedAge = dino != null ? Math.max(0, Math.min(age, dino.growth().maxAge())) : Math.max(0, age);
-        boolean changed = entityData.get(DINO_AGE) != clampedAge;
-        if (changed) {
+        if (entityData.get(DINO_AGE) != clampedAge) {
+            // onSyncedDataUpdated applies stats and refreshes dimensions
             entityData.set(DINO_AGE, clampedAge);
+        } else {
+            applyGrowthDerivedStats();
         }
-        applyGrowthDerivedStats();
-        if (changed) {
-            refreshDimensions();
-        }
+        growthTicks = 0;
     }
 
     public boolean growByStages(int stages) {
@@ -305,9 +318,12 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         return DinosaurCombat.shouldFear(this, target);
     }
 
+    /** Server-only: scale attributes to the current growth stage, preserving the health fraction. */
     private void applyGrowthDerivedStats() {
+        if (level().isClientSide()) return;
         Dinosaur dino = getDinosaur();
         if (dino == null) return;
+        growthStatsApplied = true;
 
         double currentMaxHealth = Math.max(1.0, getMaxHealth());
         double healthFraction = getHealth() / currentMaxHealth;
@@ -345,6 +361,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         super.onSyncedDataUpdated(key);
 
         if (DINO_AGE.equals(key)) {
+            // Attributes and health are server-authoritative and synced separately;
+            // the client only needs its bounding box resized.
             applyGrowthDerivedStats();
             refreshDimensions();
         }
@@ -410,17 +428,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         Dinosaur dino = getDinosaur();
         if (dino == null) return false;
 
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        String path = itemId.getPath();
-
-        if (dino.diet() != Dinosaur.Diet.CARNIVORE) {
-            if (stack.is(ModItems.FERN_SEED)) return true;
-        }
-        if (dino.diet() != Dinosaur.Diet.HERBIVORE) {
-            if (path.endsWith("_meat")) return true;
-        }
-
-        return false;
+        return (dino.diet().eatsPlants() && stack.is(ModItems.FERN_SEED))
+                || (dino.diet().eatsMeat() && stack.is(ModItemTags.DINO_MEAT));
     }
 
     private static void consumeHeldItemAndGiveRemainder(Player player, InteractionHand hand, ItemStack heldStack, ItemStack remainder) {
@@ -442,8 +451,12 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         Dinosaur dino = getDinosaur();
         if (dino == null) return;
 
-        // Growth
-        if (getDinoAge() < dino.growth().maxAge() && tickCount % dino.growth().growTime() == 0 && tickCount > 0) {
+        if (!growthStatsApplied) {
+            applyGrowthDerivedStats();
+        }
+
+        // Growth: a saved counter rather than tickCount, which resets whenever the entity reloads
+        if (getDinoAge() < dino.growth().maxAge() && ++growthTicks >= dino.growth().growTime()) {
             setDinoAge(getDinoAge() + 1);
         }
 
@@ -478,9 +491,31 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         } else if (dino.animations().special() != null && !dino.animations().special().isEmpty()
                 && getNavigation().isDone() && getTarget() == null && getRandom().nextInt(200) == 0) {
             String anim = dino.animations().special().get(getRandom().nextInt(dino.animations().special().size()));
+            // Triggered server-side; GeckoLib syncs the trigger to tracking clients
             triggerAnim(SPECIAL_CONTROLLER, anim);
             specialAnimCooldown = 300;
         }
+    }
+
+    // --- Combat ---
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, net.minecraft.world.entity.Entity target) {
+        boolean hit = super.doHurtTarget(level, target);
+        if (hit) {
+            triggerAnim(ATTACK_CONTROLLER, ATTACK_TRIGGER);
+        }
+        return hit;
+    }
+
+    @Override
+    public boolean killedEntity(ServerLevel level, LivingEntity victim, DamageSource source) {
+        // Hunting is part of the hunger loop: a kill restores hunger in proportion to the prey's size.
+        Dinosaur dino = getDinosaur();
+        if (dino != null && dino.diet().eatsMeat()) {
+            feed(Math.max(5, Math.min(40, Math.round(victim.getMaxHealth()))));
+        }
+        return super.killedEntity(level, victim, source);
     }
 
     // --- Death drops ---
@@ -491,8 +526,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         Dinosaur dino = getDinosaur();
         if (dino == null) return;
 
-        net.minecraft.world.item.Item meatItem = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinosaurId + "_meat"));
-        if (meatItem != net.minecraft.world.item.Items.AIR) {
+        net.minecraft.world.item.Item meatItem = BuiltInRegistries.ITEM.getValue(speciesId.withSuffix("_meat"));
+        if (meatItem != net.minecraft.world.item.Items.AIR && dino.food().meatDropCount() > 0) {
             int count = 1 + getRandom().nextInt(dino.food().meatDropCount());
             spawnAtLocation(level, new ItemStack(meatItem, count));
         }
@@ -502,17 +537,22 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
     @Override
     protected net.minecraft.sounds.SoundEvent getAmbientSound() {
-        return mod.fossilsarch2.registry.ModSounds.get(dinosaurId + ".ambient");
+        return speciesSound(".ambient");
     }
 
     @Override
     protected net.minecraft.sounds.SoundEvent getHurtSound(DamageSource source) {
-        return mod.fossilsarch2.registry.ModSounds.get(dinosaurId + ".hurt");
+        return speciesSound(".hurt");
     }
 
     @Override
     protected net.minecraft.sounds.SoundEvent getDeathSound() {
-        return mod.fossilsarch2.registry.ModSounds.get(dinosaurId + ".death");
+        return speciesSound(".death");
+    }
+
+    /** Sounds follow the convention {@code <ns>:<species>.<kind>}; missing ones are silent. */
+    private net.minecraft.sounds.@Nullable SoundEvent speciesSound(String suffix) {
+        return BuiltInRegistries.SOUND_EVENT.getOptional(speciesId.withSuffix(suffix)).orElse(null);
     }
 
     // --- NBT ---
@@ -524,6 +564,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         output.putInt("DinoAge", getDinoAge());
         output.putInt("Hunger", getHunger());
         output.putString("Variant", getVariant());
+        output.putInt(GROWTH_TICKS_KEY, growthTicks);
     }
 
     @Override
@@ -533,6 +574,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         // if (savedVersion < 2) { ... }
 
         setDinoAge(input.getIntOr("DinoAge", 0));
+        growthTicks = input.getIntOr(GROWTH_TICKS_KEY, 0);
         setHunger(input.getIntOr("Hunger", getMaxHunger()));
         setVariant(input.getStringOr("Variant", ""));
     }
@@ -551,42 +593,40 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
     @Override
     public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("Movement", 5, this::movementController));
-        controllers.add(new AnimationController<>("Attack", 5, this::attackController));
+        // Animation names come from the species JSON, so a new species needs no animation code.
+        Dinosaur.Animations anims = getDinosaur() != null ? getDinosaur().animations() : Dinosaur.Animations.DEFAULT;
+        RawAnimation walk = loop(anims.walk());
+        RawAnimation idle = loop(anims.idle());
+        RawAnimation eat = loop(anims.eat());
 
-        // Register species-specific special animations from JSON
-        Dinosaur dino = getDinosaur();
-        if (dino != null && dino.animations().special() != null && !dino.animations().special().isEmpty()) {
+        controllers.add(new AnimationController<DinosaurEntity>("Movement", 5,
+                test -> play(test, test.isMoving() ? walk : idle)));
+
+        // Attacks are one-shot triggers fired from doHurtTarget so they always play to completion;
+        // between attacks the controller shows the eating loop while the dinosaur feeds.
+        AnimationController<DinosaurEntity> attack = new AnimationController<>(ATTACK_CONTROLLER, 5,
+                test -> isEating() ? play(test, eat) : PlayState.STOP);
+        if (!anims.attack().isEmpty()) {
+            attack.triggerableAnim(ATTACK_TRIGGER, RawAnimation.begin().thenPlay(anims.attack()));
+        }
+        controllers.add(attack);
+
+        if (!anims.special().isEmpty()) {
             AnimationController<DinosaurEntity> special = new AnimationController<>(SPECIAL_CONTROLLER, 5,
-                    animTest -> PlayState.STOP);
-            for (String animName : dino.animations().special()) {
+                    test -> PlayState.STOP);
+            for (String animName : anims.special()) {
                 special.triggerableAnim(animName, RawAnimation.begin().thenPlay(animName));
             }
             controllers.add(special);
         }
     }
 
-    protected PlayState movementController(final AnimationTest<DinosaurEntity> animTest) {
-        if (animTest.isMoving())
-            return animTest.setAndContinue(WALK_ANIM);
-
-        // Play idle if the species has one, otherwise stop
-        return animTest.setAndContinue(IDLE_ANIM);
+    private static @Nullable RawAnimation loop(String name) {
+        return name.isEmpty() ? null : RawAnimation.begin().thenLoop(name);
     }
 
-    protected PlayState attackController(final AnimationTest<DinosaurEntity> animTest) {
-        if (this.isSwinging()) {
-            Dinosaur dino = getDinosaur();
-            String attackAnimation = dino != null ? dino.animations().attack() : null;
-            if (attackAnimation != null && !attackAnimation.isEmpty()) {
-                return animTest.setAndContinue(RawAnimation.begin().thenPlay(attackAnimation));
-            }
-            return PlayState.STOP;
-        }
-        if (this.isEating()) {
-            return animTest.setAndContinue(EAT_ANIM);
-        }
-        return PlayState.STOP;
+    private static PlayState play(AnimationTest<DinosaurEntity> test, @Nullable RawAnimation animation) {
+        return animation != null ? test.setAndContinue(animation) : PlayState.STOP;
     }
 
     @Override

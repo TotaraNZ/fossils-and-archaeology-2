@@ -1,44 +1,46 @@
 package mod.fossilsarch2.model;
 
-import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import net.minecraft.resources.Identifier;
 import com.geckolib.model.GeoModel;
 import com.geckolib.renderer.base.GeoRenderState;
 
+/**
+ * One model per species, resolving assets by convention from the species ID:
+ * <ul>
+ *   <li>model: {@code geckolib/models/<path>.geo.json}</li>
+ *   <li>animations: {@code geckolib/animations/<path>.animation.json}</li>
+ *   <li>texture: {@code textures/entity/<path>/<path>[_<variant>].png}</li>
+ * </ul>
+ */
 public class DinosaurModel extends GeoModel<DinosaurEntity> {
 
-    private final String dinosaurId;
-    private String currentVariant = "";
+    private final Identifier speciesId;
+    private final Identifier defaultTexture;
 
-    public DinosaurModel(String dinosaurId) {
-        super();
-        this.dinosaurId = dinosaurId;
+    public DinosaurModel(Identifier speciesId) {
+        this.speciesId = speciesId;
+        this.defaultTexture = texture(speciesId, "");
     }
 
-    public void setVariant(String variant) {
-        this.currentVariant = variant != null ? variant : "";
+    public static Identifier texture(Identifier speciesId, String variant) {
+        String path = speciesId.getPath();
+        String suffix = variant.isEmpty() ? "" : "_" + variant;
+        return speciesId.withPath("textures/entity/" + path + "/" + path + suffix + ".png");
     }
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
-        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinosaurId);
+        return speciesId;
     }
 
     @Override
     public Identifier getTextureResource(GeoRenderState renderState) {
-        // If variant is set, use textures/entity/{id}/{id}_{variant}.png
-        // Otherwise use textures/entity/{id}/{id}.png
-        if (!currentVariant.isEmpty()) {
-            return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
-                    "textures/entity/" + dinosaurId + "/" + dinosaurId + "_" + currentVariant + ".png");
-        }
-        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
-                "textures/entity/" + dinosaurId + "/" + dinosaurId + ".png");
+        return renderState.getOrDefaultGeckolibData(ModRenderData.TEXTURE, defaultTexture);
     }
 
     @Override
     public Identifier getAnimationResource(DinosaurEntity animatable) {
-        return Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, dinosaurId);
+        return speciesId;
     }
 }

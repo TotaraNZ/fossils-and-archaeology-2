@@ -8,7 +8,7 @@ modId = "fossilsarch2"
 version = "${file.jarVersion}"
 displayName = "Fossils & Archaeology 2"
 authors = "TotaraNZ"
-logoFile = "assets/fossilsarch2/icon.png"
+iconFile = "assets/fossilsarch2/icon.png"
 description = '''
 A faithful re-creation of the original prehistoric Minecraft experience. Discover fossils, extract DNA, cultivate eggs, and raise dinosaurs.
 '''

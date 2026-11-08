@@ -2,8 +2,10 @@ package mod.fossilsarch2.render;
 
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.model.DinoEggModel;
+import mod.fossilsarch2.model.ModRenderData;
 import net.minecraft.client.renderer.entity.EntityRendererProvider.Context;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.resources.Identifier;
 import com.geckolib.renderer.GeoEntityRenderer;
 import com.geckolib.renderer.base.GeoRenderState;
 
@@ -18,9 +20,9 @@ public class DinoEggRenderer<R extends EntityRenderState & GeoRenderState>
     @Override
     public void captureDefaultRenderState(DinoEggEntity entity, Void input, R state, float partialTick) {
         super.captureDefaultRenderState(entity, input, state, partialTick);
-        String dinoId = entity.getDinoId();
-        if (!dinoId.isEmpty()) {
-            ((DinoEggModel) getGeoModel()).setDinoId(dinoId);
+        Identifier speciesId = entity.getSpeciesId();
+        if (speciesId != null) {
+            state.addGeckolibData(ModRenderData.TEXTURE, DinoEggModel.texture(speciesId));
         }
     }
 }
