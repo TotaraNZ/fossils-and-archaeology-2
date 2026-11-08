@@ -31,7 +31,7 @@ jobs:
           echo "No conventional commit triggered a version bump — skipping build and release."
           exit 0
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         if: steps.tag.outputs.new_tag
         uses: actions/setup-java@v4
         with:
@@ -41,6 +41,10 @@ jobs:
       - name: Verify generated data
         if: steps.tag.outputs.new_tag
         run: ./gradlew checkGeneratedData -PreleaseVersion=${{ steps.tag.outputs.new_tag }}
+
+      - name: GameTests
+        if: steps.tag.outputs.new_tag
+        run: ./gradlew gameTest -PreleaseVersion=${{ steps.tag.outputs.new_tag }}
 
       - name: Build
         if: steps.tag.outputs.new_tag

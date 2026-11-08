@@ -296,6 +296,11 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         return dino != null ? dino.hunger().maxHunger() : DEFAULT_MAX_HUNGER;
     }
 
+    /** Ticks accumulated toward the next age stage. */
+    public int getGrowthTicks() {
+        return growthTicks;
+    }
+
     public float getGrowthProgress() {
         Dinosaur dino = getDinosaur();
         if (dino == null || dino.growth().maxAge() <= 0) return 1.0f;

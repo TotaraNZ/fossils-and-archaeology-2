@@ -49,6 +49,15 @@ sourceSets {
 			exclude '.cache/**'
 		}
 	}
+	// GameTests live in their own source set: loaded in dev runs, never shipped in the jar.
+	gametest {
+		compileClasspath += main.output
+		runtimeClasspath += main.output
+	}
+}
+
+configurations {
+	gametestImplementation.extendsFrom implementation
 }
 
 repositories {
@@ -69,10 +78,16 @@ neoForge {
 	runs {
 		client {
 			client()
+			systemProperty 'neoforge.enableGameTest', 'true'
 		}
 		server {
 			server()
 			programArgument '--nogui'
+			// Lets `/test runall` find the GameTests in a dev world
+			systemProperty 'neoforge.enableGameTest', 'true'
+		}
+		gameTestServer {
+			type = 'gameTestServer'
 		}
 		clientData {
 			clientData()
@@ -95,6 +110,7 @@ neoForge {
 	mods {
 		fossilsarch2 {
 			sourceSet sourceSets.main
+			sourceSet sourceSets.gametest
 		}
 	}
 }
@@ -102,6 +118,14 @@ neoForge {
 dependencies {
 	// GeckoLib for models and animations (NeoForge variant)
 	implementation "com.geckolib:geckolib-neoforge-26.3:${geckolib_version}"
+}
+
+neoForge.addModdingDependenciesTo(sourceSets.gametest)
+
+tasks.register("gameTest") {
+	group = "verification"
+	description = "Runs the GameTests on a headless server; fails if any required test fails."
+	dependsOn("runGameTestServer")
 }
 
 tasks.register("regenData") {
