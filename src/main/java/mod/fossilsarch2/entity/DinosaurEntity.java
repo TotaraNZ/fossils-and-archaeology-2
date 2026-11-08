@@ -30,6 +30,7 @@ import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -48,7 +49,6 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -81,6 +81,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
             DinosaurEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final int DEFAULT_MAX_HUNGER = 100;
+    private static final int HAND_FEED_AMOUNT = 20;
 
     // Bump on NBT schema changes; migrate in readAdditionalSaveData
     private static final int CURRENT_DATA_VERSION = 1;
@@ -124,6 +125,15 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     @Override
     protected void registerGoals() {
         // Only register diet-independent goals here (speciesId is null at this point)
+        registerMovementGoals();
+
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(3, new HurtByTargetGoal(this));
+    }
+
+    /** Getting around, following and idling; {@link AquaticDinosaurEntity} swims instead. */
+    protected void registerMovementGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(3, new DinoUseFeederGoal(this));
         this.goalSelector.addGoal(5, new TemptGoal(this, 1.1D, stack -> stack.is(ModItems.FERN_SEED), false));
@@ -132,10 +142,11 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));
+    }
 
-        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
-        this.targetSelector.addGoal(3, new HurtByTargetGoal(this));
+    /** True for species with {@code "habitat": "aquatic"}, which are {@link AquaticDinosaurEntity}s. */
+    public boolean isAquatic() {
+        return false;
     }
 
     private void setupDietGoals() {
@@ -148,14 +159,15 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, LivingEntity.class, 10.0f, 1.0D,
                 Math.max(1.15f, dino.combat().fleeSpeed()), this::shouldFear));
 
-        if (diet.eatsPlants()) {
+        if (diet.eatsPlants() && !isAquatic()) {
             this.goalSelector.addGoal(4, new DinoEatFernGoal(this));
         }
 
         if (diet.eatsMeat()) {
             this.goalSelector.addGoal(2, new MeleeAttackGoal(this, dino.combat().chaseSpeed(), false));
-            this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, 10, false, false,
-                    (target, level) -> this.shouldHunt(target)));
+            this.targetSelector.addGoal(4,
+                    new NearestAttackableTargetGoal<>(this, PathfinderMob.class, 10, false, false,
+                            (target, level) -> this.shouldHunt(target)));
             this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Player.class, 10, false, false,
                     (target, level) -> target instanceof Player player && this.shouldAttackPlayer(player)));
         }
@@ -416,6 +428,19 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
             return InteractionResult.SUCCESS;
         }
 
+        // Hand-feeding a hungry tame dinosaur: the only food source for one kept away from feeders,
+        // such as an aquatic species in a tank.
+        if (isTame() && isHungry() && isDinoFood(stack)) {
+            if (!level().isClientSide()) {
+                if (!player.isCreative()) {
+                    stack.shrink(1);
+                }
+                feed(HAND_FEED_AMOUNT);
+                playSound(net.minecraft.sounds.SoundEvents.GENERIC_EAT.value(), 0.8f, 1.0f);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         // Taming with food
         if (!isTame() && isDinoFood(stack)) {
             if (!player.isCreative()) {
@@ -490,8 +515,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
             boolean keepTarget = currentTarget.isAlive();
             if (keepTarget && currentTarget instanceof Player player) {
                 keepTarget = shouldAttackPlayer(player);
-            } else if (keepTarget && currentTarget instanceof Animal animal) {
-                keepTarget = shouldHunt(animal) || getLastHurtByMob() == currentTarget;
+            } else if (keepTarget) {
+                keepTarget = shouldHunt(currentTarget) || getLastHurtByMob() == currentTarget;
             }
 
             if (!keepTarget || shouldFear(currentTarget)) {

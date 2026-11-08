@@ -27,7 +27,27 @@ public record Dinosaur(
         HungerStats hunger,
         FoodStats food,
         Animations animations,
-        List<String> variants) {
+        List<String> variants,
+        Habitat habitat) {
+
+    /** Where a species lives. Aquatic species swim, hunt sea life and dry out on land. */
+    public enum Habitat implements StringRepresentable {
+        LAND("land"),
+        AQUATIC("aquatic");
+
+        public static final Codec<Habitat> CODEC = StringRepresentable.fromEnum(Habitat::values);
+
+        private final String serializedName;
+
+        Habitat(String serializedName) {
+            this.serializedName = serializedName;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return serializedName;
+        }
+    }
 
     public enum Diet implements StringRepresentable {
         HERBIVORE("herbivore"),
@@ -67,8 +87,13 @@ public record Dinosaur(
             HungerStats.CODEC.optionalFieldOf("hunger", HungerStats.DEFAULT).forGetter(Dinosaur::hunger),
             FoodStats.CODEC.fieldOf("food").forGetter(Dinosaur::food),
             Animations.CODEC.optionalFieldOf("animations", Animations.DEFAULT).forGetter(Dinosaur::animations),
-            Codec.STRING.listOf().optionalFieldOf("variants", List.of()).forGetter(Dinosaur::variants))
+            Codec.STRING.listOf().optionalFieldOf("variants", List.of()).forGetter(Dinosaur::variants),
+            Habitat.CODEC.optionalFieldOf("habitat", Habitat.LAND).forGetter(Dinosaur::habitat))
             .apply(i, Dinosaur::new));
+
+    public boolean isAquatic() {
+        return habitat == Habitat.AQUATIC;
+    }
 
     public record CombatStats(
             double health, double speed, double attackDamage,

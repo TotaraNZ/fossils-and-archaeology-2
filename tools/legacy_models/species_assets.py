@@ -18,7 +18,8 @@ RES = os.path.join(HERE, "..", "..", "src", "main", "resources")
 ASSETS = os.path.join(RES, "assets", "fossilsarch2")
 DATA = os.path.join(RES, "data", "fossilsarch2", "fossilsarch2", "dinosaurs")
 
-# Land species registered as mobs. The marine reptiles get models but need swimming AI first.
+# "sounds" maps each kind to original Fossils & Archaeology clips (in assets/fossilsarch2/sounds),
+# as a name or (name, pitch); species with no recorded death call reuse the hurt clip lower.
 SPECIES = {
     "stegosaurus": {
         "display_name": "Stegosaurus", "diet": "herbivore",
@@ -29,7 +30,8 @@ SPECIES = {
         "food": {"meat_nutrition": 4, "meat_saturation": 0.4, "cooked_meat_nutrition": 8,
                  "cooked_meat_saturation": 0.8, "meat_drop_count": 4},
         "animations": {"attack": "tail_swipe", "special": ["look"]},
-        "sounds": ("triceratops", 0.8),
+        "sounds": {"ambient": ["stegosaurus_living1", "stegosaurus_living2", "stegosaurus_living3"],
+                   "hurt": ["stegosaurus_hurt"], "death": ["stegosaurus_death"]},
     },
     "brachiosaurus": {
         "display_name": "Brachiosaurus", "diet": "herbivore",
@@ -40,7 +42,8 @@ SPECIES = {
         "food": {"meat_nutrition": 5, "meat_saturation": 0.5, "cooked_meat_nutrition": 10,
                  "cooked_meat_saturation": 1.0, "meat_drop_count": 6},
         "animations": {"attack": "stomp", "special": ["look"]},
-        "sounds": ("triceratops", 0.6),
+        "sounds": {"ambient": ["brachiosaurus_living1", "brachiosaurus_living2"],
+                   "hurt": ["brachiosaurus_hurt1"], "death": ["brachiosaurus_death1"]},
     },
     "dilophosaurus": {
         "display_name": "Dilophosaurus", "diet": "carnivore",
@@ -52,7 +55,9 @@ SPECIES = {
         "food": {"meat_nutrition": 3, "meat_saturation": 0.3, "cooked_meat_nutrition": 7,
                  "cooked_meat_saturation": 0.7, "meat_drop_count": 3},
         "animations": {"eat": "", "special": ["roar"]},
-        "sounds": ("tyrannosaurus", 1.3),
+        "variants": ["", "lime"],
+        "sounds": {"ambient": ["dilophosaurus_living", "dilophosaurus_call1", "dilophosaurus_call2"],
+                   "hurt": ["dilophosaurus_hurt"], "death": ["dilophosaurus_death"]},
     },
     "velociraptor": {
         "display_name": "Velociraptor", "diet": "carnivore",
@@ -64,7 +69,10 @@ SPECIES = {
         "food": {"meat_nutrition": 3, "meat_saturation": 0.3, "cooked_meat_nutrition": 6,
                  "cooked_meat_saturation": 0.6, "meat_drop_count": 2},
         "animations": {"eat": "", "special": ["roar"]},
-        "sounds": ("tyrannosaurus", 1.6),
+        "variants": ["", "green", "blue"],
+        "sounds": {"ambient": ["velociraptor_living_wild1", "velociraptor_living_wild2"],
+                   "hurt": ["velociraptor_hurt1", "velociraptor_hurt2", "velociraptor_hurt3", "velociraptor_hurt4"],
+                   "death": [("velociraptor_hurt2", 0.75)]},
     },
     "pterosaur": {
         "display_name": "Pterosaur", "diet": "carnivore",
@@ -76,7 +84,34 @@ SPECIES = {
         "food": {"meat_nutrition": 2, "meat_saturation": 0.2, "cooked_meat_nutrition": 5,
                  "cooked_meat_saturation": 0.5, "meat_drop_count": 2},
         "animations": {"eat": "", "special": ["flap"]},
-        "sounds": ("minecraft:entity.parrot", 0.7),
+        "sounds": {"ambient": ["pterosaur_living1", "pterosaur_living2"],
+                   "hurt": ["pterosaur_hurt"], "death": [("pterosaur_hurt", 0.75)]},
+    },
+    "mosasaurus": {
+        "display_name": "Mosasaurus", "diet": "carnivore", "habitat": "aquatic",
+        "combat": {"health": 60.0, "speed": 0.32, "attack_damage": 9.0, "combat_modifier": 1.3,
+                   "confidence": 1.4, "chase_speed": 1.5, "min_hunt_progress": 0.4,
+                   "player_aggression_progress": 0.8, "prey_ratio_max": 0.9, "fear_ratio": 1.6},
+        "growth": {"width": 1.2, "height": 0.8, "baby_scale": 0.35, "adult_scale": 2.5,
+                   "max_age": 12, "grow_time": 12000, "hatch_time": 3000},
+        "food": {"meat_nutrition": 4, "meat_saturation": 0.4, "cooked_meat_nutrition": 8,
+                 "cooked_meat_saturation": 0.8, "meat_drop_count": 4},
+        "animations": {"eat": ""},
+        "sounds": {"ambient": ["mosasaurus_living1", "mosasaurus_living2"],
+                   "hurt": ["mosasaurus_hurt"], "death": ["mosasaurus_death1", "mosasaurus_death2"]},
+    },
+    "plesiosaurus": {
+        "display_name": "Plesiosaurus", "diet": "carnivore", "habitat": "aquatic",
+        "combat": {"health": 35.0, "speed": 0.28, "attack_damage": 5.0, "combat_modifier": 1.0,
+                   "confidence": 1.0, "chase_speed": 1.4, "min_hunt_progress": 0.4,
+                   "player_aggression_progress": 1.0, "prey_ratio_max": 0.8, "fear_ratio": 1.3},
+        "growth": {"width": 1.0, "height": 0.9, "baby_scale": 0.35, "adult_scale": 1.8,
+                   "max_age": 10, "grow_time": 10000, "hatch_time": 3000},
+        "food": {"meat_nutrition": 3, "meat_saturation": 0.3, "cooked_meat_nutrition": 7,
+                 "cooked_meat_saturation": 0.7, "meat_drop_count": 3},
+        "animations": {"eat": ""},
+        "sounds": {"ambient": ["plesiosaur_living"], "hurt": ["plesiosaur_hurt"],
+                   "death": [("plesiosaur_hurt", 0.75)]},
     },
 }
 
@@ -109,12 +144,11 @@ def main():
         data = {k: v for k, v in spec.items() if k != "sounds"}
         write_json(os.path.join(DATA, f"{sid}.json"), data)
 
-        source, pitch = spec["sounds"]
         for kind in ("ambient", "hurt", "death"):
-            if source.startswith("minecraft:"):
-                entries = [{"name": f"{source}.{kind}", "type": "event", "pitch": pitch}]
-            else:
-                entries = [{"name": f"fossilsarch2:{n}", "pitch": pitch} for n in EXISTING_SOUNDS[source][kind]]
+            entries = []
+            for clip in spec["sounds"][kind]:
+                name, pitch = clip if isinstance(clip, tuple) else (clip, None)
+                entries.append({"name": f"fossilsarch2:{name}", **({"pitch": pitch} if pitch else {})})
             sounds[f"{sid}.{kind}"] = {"sounds": entries, "subtitle": f"subtitles.fossilsarch2.{sid}.{kind}"}
             new_lang[f"subtitles.fossilsarch2.{sid}.{kind}"] = f"{spec['display_name']} {SUBTITLE_VERBS[kind]}"
 

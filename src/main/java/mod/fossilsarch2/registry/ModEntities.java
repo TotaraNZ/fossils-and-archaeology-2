@@ -5,6 +5,7 @@ import java.util.Map;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
+import mod.fossilsarch2.entity.AquaticDinosaurEntity;
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import net.minecraft.core.registries.Registries;
@@ -43,7 +44,9 @@ public final class ModEntities {
                     Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, id));
             DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>> holder = ENTITY_TYPES.register(
                     id,
-                    () -> EntityType.Builder.of(DinosaurEntity::new, MobCategory.CREATURE)
+                    // CREATURE for both habitats: WATER_CREATURE is not persistent, so tamed aquatics would despawn.
+                    () -> EntityType.Builder.<DinosaurEntity>of(
+                            d.isAquatic() ? AquaticDinosaurEntity::new : DinosaurEntity::new, MobCategory.CREATURE)
                             .sized(d.growth().width(), d.growth().height())
                             .build(key));
             TYPES.put(id, holder);

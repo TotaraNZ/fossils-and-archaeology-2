@@ -14,7 +14,13 @@
             "items": "fossilsarch2:velociraptor_dna"
           },
           {
+            "items": "fossilsarch2:mosasaurus_dna"
+          },
+          {
             "items": "fossilsarch2:tyrannosaurus_dna"
+          },
+          {
+            "items": "fossilsarch2:plesiosaurus_dna"
           },
           {
             "items": "fossilsarch2:stegosaurus_dna"

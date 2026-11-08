@@ -34,5 +34,10 @@
         "special": [
             "roar"
         ]
-    }
+    },
+    "variants": [
+        "",
+        "green",
+        "blue"
+    ]
 }

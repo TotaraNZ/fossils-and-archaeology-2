@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mosasaurus_meat": {
+      "conditions": {
+        "items": [
+          {
+            "items": "fossilsarch2:mosasaurus_meat"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "fossilsarch2:mosasaurus_cooked_meat_from_campfire_cooking"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mosasaurus_meat"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "fossilsarch2:mosasaurus_cooked_meat_from_campfire_cooking"
+    ]
+  }
+}

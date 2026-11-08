@@ -64,8 +64,13 @@ def parse(path: str) -> LegacyModel:
     # Techne output and later hand edits leave whole parts commented out; drop comments first.
     src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
     src = re.sub(r"//[^\n]*", "", src)
+    # Later hand edits qualify fields with "this." and may create parts in field initialisers.
+    src = re.sub(r"\bthis\.(?=\w)", "", src)
     class_name = re.search(r"class\s+(\w+)", src).group(1)
     body = _constructor_body(src, class_name)
+    ctor = re.search(rf"public\s+{re.escape(class_name)}\s*\(\s*\)", src).start()
+    fields = [f for f in src[:ctor].split(";") if "new ModelRenderer" in f]
+    body = ";".join(fields) + ";" + body
 
     tex_w, tex_h = 64, 32
     if m := re.search(rf"textureWidth\s*=\s*(\d+)", body):
@@ -76,7 +81,7 @@ def parse(path: str) -> LegacyModel:
     parts: dict[str, Part] = {}
     for stmt in body.split(";"):
         stmt = " ".join(stmt.split())
-        if m := re.search(rf"(\w+)\s*=\s*new ModelRenderer\(\s*this\s*,\s*({_NUM})\s*,\s*({_NUM})\s*\)"
+        if m := re.search(rf"(\w+)\s*=\s*\(?\s*new ModelRenderer\(\s*this\s*,\s*({_NUM})\s*,\s*({_NUM})\s*\)\s*\)?"
                           rf"(?:\.setTextureSize\(\s*(\d+)\s*,\s*(\d+)\s*\))?", stmt):
             parts[m.group(1)] = Part(m.group(1), int(m.group(2)), int(m.group(3)))
             if m.group(4):

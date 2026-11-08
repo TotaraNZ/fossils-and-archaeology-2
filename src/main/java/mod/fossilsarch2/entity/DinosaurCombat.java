@@ -6,7 +6,9 @@ import mod.fossilsarch2.dinosaur.Dinosaur;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.AgeableWaterCreature;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.fish.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 
@@ -67,7 +69,7 @@ public final class DinosaurCombat {
         // Predators hunt to eat, and only once feeders and other easy food have failed them:
         // a merely peckish dinosaur leaves livestock, pets and pen-mates alone.
         if (!dinosaur.isHuntingHungry()) return false;
-        if (!isPreyCandidate(target) || isFriendlyOrInvalidTarget(dinosaur, target)) return false;
+        if (!isPreyCandidate(dinosaur, target) || isFriendlyOrInvalidTarget(dinosaur, target)) return false;
         if (dinosaur.getGrowthProgress() < data.combat().minHuntProgress()) return false;
 
         CombatEvaluation self = CombatEvaluation.of(dinosaur);
@@ -161,9 +163,12 @@ public final class DinosaurCombat {
         return false;
     }
 
-    private static boolean isPreyCandidate(LivingEntity target) {
+    private static boolean isPreyCandidate(DinosaurEntity dinosaur, LivingEntity target) {
         // DinosaurEntity extends TamableAnimal -> Animal, so this intentionally includes
         // dinosaur-vs-dinosaur predation unless the target is filtered out elsewhere.
-        return target != null && target.isAlive() && target instanceof Animal;
+        if (target == null || !target.isAlive()) return false;
+        if (target instanceof Animal) return true;
+        // Fish and squid are not Animals; only aquatic predators can reach them.
+        return dinosaur.isAquatic() && (target instanceof WaterAnimal || target instanceof AgeableWaterCreature);
     }
 }

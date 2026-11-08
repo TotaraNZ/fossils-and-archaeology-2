@@ -11,6 +11,7 @@ import mod.fossilsarch2.block.FernBlock;
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import mod.fossilsarch2.dinosaur.DinosaurUtils;
+import mod.fossilsarch2.entity.AquaticDinosaurEntity;
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import mod.fossilsarch2.registry.ModBlocks;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.fish.Cod;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -92,6 +94,13 @@ public final class FossilsGameTests {
                 new TestCase(400, FossilsGameTests::peckishPredatorUsesFeederNotLivestock));
         TESTS.put("hungry_predator_hunts_and_eats", new TestCase(600, FossilsGameTests::hungryPredatorHuntsAndEats));
         TESTS.put("egg_hatches_in_light", new TestCase(100, FossilsGameTests::eggHatchesInLight));
+        TESTS.put("aquatic_dinosaur_breathes_underwater",
+                new TestCase(120, FossilsGameTests::aquaticDinosaurBreathesUnderwater));
+        TESTS.put("stranded_aquatic_dinosaur_dries_out",
+                new TestCase(60, FossilsGameTests::strandedAquaticDinosaurDriesOut));
+        TESTS.put("aquatic_predator_hunts_fish", new TestCase(600, FossilsGameTests::aquaticPredatorHuntsFish));
+        TESTS.put("aquatic_egg_hatches_only_in_water",
+                new TestCase(100, FossilsGameTests::aquaticEggHatchesOnlyInWater));
     }
 
     private FossilsGameTests() {}
@@ -321,6 +330,70 @@ public final class FossilsGameTests {
             helper.assertEntityPresent(species("triceratops"));
             helper.assertTrue(egg.isRemoved(), "the egg is consumed when it hatches");
         });
+    }
+
+    // --- Aquatic species ---
+
+    private static void aquaticDinosaurBreathesUnderwater(GameTestHelper helper) {
+        fillPool(helper);
+        DinosaurEntity plesiosaur = adult(helper, "plesiosaurus", CENTRE);
+        helper.assertTrue(plesiosaur instanceof AquaticDinosaurEntity, "aquatic species use the swimming entity");
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(plesiosaur.isInWater(), "it stays in the water");
+            helper.assertTrue(plesiosaur.getAirSupply() == plesiosaur.getMaxAirSupply(), "it never runs out of air");
+            helper.assertTrue(plesiosaur.getHealth() == plesiosaur.getMaxHealth(), "and takes no drowning damage");
+            helper.succeed();
+        });
+    }
+
+    private static void strandedAquaticDinosaurDriesOut(GameTestHelper helper) {
+        DinosaurEntity plesiosaur = adult(helper, "plesiosaurus", CENTRE);
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(plesiosaur.getAirSupply() < plesiosaur.getMaxAirSupply(),
+                    "an aquatic dinosaur out of water starts drying out");
+            helper.succeed();
+        });
+    }
+
+    private static void aquaticPredatorHuntsFish(GameTestHelper helper) {
+        fillPool(helper);
+        DinosaurEntity mosasaur = hungryAdult(helper, "mosasaurus", CORNER);
+        Cod cod = helper.spawn(EntityTypes.COD, CENTRE);
+        cod.setPersistenceRequired();
+        helper.succeedWhen(() -> {
+            helper.assertTrue(!cod.isAlive(), "a hungry aquatic predator hunts fish");
+            helper.assertTrue(mosasaur.getHunger() > HUNGRY, "and the kill restores hunger");
+        });
+    }
+
+    private static void aquaticEggHatchesOnlyInWater(GameTestHelper helper) {
+        Identifier speciesId = id("mosasaurus");
+        int hatchTime = DinosaurUtils.get(helper.getLevel(), speciesId).growth().hatchTime();
+        // A dry egg in full light: light alone does not incubate an aquatic egg.
+        helper.setBlock(CORNER.east(), Blocks.GLOWSTONE);
+        DinoEggEntity dry = helper.spawn(ModEntities.DINO_EGG.get(), CORNER);
+        dry.setSpeciesId(speciesId);
+        dry.setHatchProgress(hatchTime - 5);
+        // A submerged egg hatches.
+        BlockPos pool = new BlockPos(9, 1, 9);
+        helper.setBlock(pool, Blocks.WATER);
+        helper.setBlock(pool.above(), Blocks.WATER);
+        DinoEggEntity wet = helper.spawn(ModEntities.DINO_EGG.get(), pool);
+        wet.setSpeciesId(speciesId);
+        wet.setHatchProgress(hatchTime - 5);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(wet.isRemoved(), "the submerged egg hatches");
+            helper.assertEntityPresent(species("mosasaurus"));
+            helper.assertTrue(!dry.isRemoved() && dry.getHatchProgress() < hatchTime - 5,
+                    "the dry egg stops developing");
+        });
+    }
+
+    /** Floods the pen's interior three blocks deep; its barrier walls hold the water in. */
+    private static void fillPool(GameTestHelper helper) {
+        for (BlockPos pos : BlockPos.betweenClosed(1, 1, 1, 11, 3, 11)) {
+            helper.setBlock(pos, Blocks.WATER);
+        }
     }
 
     // --- Helpers ---

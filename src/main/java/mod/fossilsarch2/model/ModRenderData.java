@@ -14,5 +14,9 @@ public final class ModRenderData {
     public static final DataTicket<Identifier> TEXTURE = DataTicket.create(FossilsArch2Mod.MOD_ID + ":texture",
             Identifier.class);
 
+    /** Body pitch in degrees for a swimming aquatic dinosaur (0 otherwise), following its dive or climb. */
+    public static final DataTicket<Float> SWIM_PITCH = DataTicket.create(FossilsArch2Mod.MOD_ID + ":swim_pitch",
+            Float.class);
+
     private ModRenderData() {}
 }

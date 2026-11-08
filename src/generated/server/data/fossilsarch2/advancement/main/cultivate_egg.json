@@ -14,7 +14,13 @@
             "items": "fossilsarch2:velociraptor_egg"
           },
           {
+            "items": "fossilsarch2:mosasaurus_egg"
+          },
+          {
             "items": "fossilsarch2:tyrannosaurus_egg"
+          },
+          {
+            "items": "fossilsarch2:plesiosaurus_egg"
           },
           {
             "items": "fossilsarch2:stegosaurus_egg"

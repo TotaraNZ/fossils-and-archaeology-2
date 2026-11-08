@@ -2,6 +2,9 @@ package mod.fossilsarch2.render;
 
 import com.geckolib.renderer.GeoEntityRenderer;
 import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.RenderPassInfo;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import mod.fossilsarch2.entity.DinosaurEntity;
 import mod.fossilsarch2.model.DinosaurModel;
 import mod.fossilsarch2.model.ModRenderData;
@@ -40,6 +43,23 @@ public class DinosaurRenderer<R extends LivingEntityRenderState & GeoRenderState
     public void captureDefaultRenderState(DinosaurEntity entity, Void input, R state, float partialTick) {
         super.captureDefaultRenderState(entity, input, state, partialTick);
         state.addGeckolibData(ModRenderData.TEXTURE, DinosaurModel.texture(speciesId, entity.getVariant()));
+        // Land dinosaurs use xRot for head pitch only; swimmers tilt their whole body.
+        float swimPitch = entity.isAquatic() && entity.isInWater() ? entity.getXRot(partialTick) : 0.0f;
+        state.addGeckolibData(ModRenderData.SWIM_PITCH, swimPitch);
+    }
+
+    @Override
+    protected void applyRotations(RenderPassInfo<R> renderPassInfo, PoseStack poseStack, float nativeScale) {
+        super.applyRotations(renderPassInfo, poseStack, nativeScale);
+        float pitch = renderPassInfo.renderState().getOrDefaultGeckolibData(ModRenderData.SWIM_PITCH, 0.0f);
+        if (pitch != 0.0f) {
+            // Tilt about the middle of the body rather than the feet.
+            float midHeight = renderPassInfo.renderState().boundingBoxHeight / 2.0f;
+            poseStack.translate(0.0f, midHeight, 0.0f);
+            // Positive xRot dives; in GeckoLib's y-up model space the nose (-z) dips under a negative X turn.
+            poseStack.rotateDegrees(Axis.XP, -pitch);
+            poseStack.translate(0.0f, -midHeight, 0.0f);
+        }
     }
 
     @Override

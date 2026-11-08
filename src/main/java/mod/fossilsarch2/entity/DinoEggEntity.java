@@ -121,10 +121,13 @@ public class DinoEggEntity extends Entity implements GeoEntity {
             return;
         }
 
-        int light = level().getMaxLocalRawBrightness(blockPosition());
         int progress = getHatchProgress();
 
-        if (light >= 9) {
+        // Land eggs incubate in light; aquatic eggs must lie in water, so hatchlings start out swimming.
+        boolean incubating = dino.isAquatic()
+                ? isInWater()
+                : level().getMaxLocalRawBrightness(blockPosition()) >= 9;
+        if (incubating) {
             progress++;
         } else {
             progress--;

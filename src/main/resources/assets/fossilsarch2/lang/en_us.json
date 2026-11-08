@@ -124,5 +124,22 @@
     "item.fossilsarch2.pterosaur_dna": "Pterosaur DNA",
     "item.fossilsarch2.pterosaur_egg": "Pterosaur Egg",
     "item.fossilsarch2.pterosaur_meat": "Raw Pterosaur Meat",
-    "item.fossilsarch2.pterosaur_cooked_meat": "Cooked Pterosaur Meat"
+    "item.fossilsarch2.pterosaur_cooked_meat": "Cooked Pterosaur Meat",
+
+    "subtitles.fossilsarch2.mosasaurus.ambient": "Mosasaurus calls",
+    "subtitles.fossilsarch2.mosasaurus.hurt": "Mosasaurus hurts",
+    "subtitles.fossilsarch2.mosasaurus.death": "Mosasaurus dies",
+    "entity.fossilsarch2.mosasaurus": "Mosasaurus",
+    "item.fossilsarch2.mosasaurus_dna": "Mosasaurus DNA",
+    "item.fossilsarch2.mosasaurus_egg": "Mosasaurus Egg",
+    "item.fossilsarch2.mosasaurus_meat": "Raw Mosasaurus Meat",
+    "item.fossilsarch2.mosasaurus_cooked_meat": "Cooked Mosasaurus Meat",
+    "subtitles.fossilsarch2.plesiosaurus.ambient": "Plesiosaurus calls",
+    "subtitles.fossilsarch2.plesiosaurus.hurt": "Plesiosaurus hurts",
+    "subtitles.fossilsarch2.plesiosaurus.death": "Plesiosaurus dies",
+    "entity.fossilsarch2.plesiosaurus": "Plesiosaurus",
+    "item.fossilsarch2.plesiosaurus_dna": "Plesiosaurus DNA",
+    "item.fossilsarch2.plesiosaurus_egg": "Plesiosaurus Egg",
+    "item.fossilsarch2.plesiosaurus_meat": "Raw Plesiosaurus Meat",
+    "item.fossilsarch2.plesiosaurus_cooked_meat": "Cooked Plesiosaurus Meat"
 }
