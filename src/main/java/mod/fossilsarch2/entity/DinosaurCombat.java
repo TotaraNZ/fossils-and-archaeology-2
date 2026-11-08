@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 
 public final class DinosaurCombat {
@@ -62,8 +64,9 @@ public final class DinosaurCombat {
     public static boolean shouldHunt(DinosaurEntity dinosaur, LivingEntity target) {
         Dinosaur data = dinosaur.getDinosaur();
         if (data == null || !data.diet().eatsMeat()) return false;
-        // Predators hunt to eat: a sated dinosaur leaves livestock and pets alone.
-        if (!dinosaur.isHungry()) return false;
+        // Predators hunt to eat, and only once feeders and other easy food have failed them:
+        // a merely peckish dinosaur leaves livestock, pets and pen-mates alone.
+        if (!dinosaur.isHuntingHungry()) return false;
         if (!isPreyCandidate(target) || isFriendlyOrInvalidTarget(dinosaur, target)) return false;
         if (dinosaur.getGrowthProgress() < data.combat().minHuntProgress()) return false;
 
@@ -98,9 +101,11 @@ public final class DinosaurCombat {
         }
         if (shouldHunt(dinosaur, target)) return false;
 
-        CombatEvaluation self = CombatEvaluation.of(dinosaur);
         CombatEvaluation other = CombatEvaluation.of(target);
         if (other.avoidAlways()) return true;
+        if (!isThreat(dinosaur, target)) return false;
+
+        CombatEvaluation self = CombatEvaluation.of(dinosaur);
 
         double fearThreshold = data.combat().fearRatio() / Math.max(0.35f, data.combat().confidence());
         if (data.diet() == Dinosaur.Diet.HERBIVORE && !isDefensivelyMature(dinosaur)) {
@@ -108,6 +113,22 @@ public final class DinosaurCombat {
         }
 
         return other.combatPower() >= self.combatPower() * fearThreshold;
+    }
+
+    /**
+     * Whether {@code target} could plausibly attack: players, monsters, meat-eating dinosaurs, and
+     * anything already targeting or hurting this dinosaur. A large but peaceful herbivore is not a
+     * threat, so a juvenile predator can still eat at a feeder an adult triceratops is grazing beside.
+     */
+    private static boolean isThreat(DinosaurEntity dinosaur, LivingEntity target) {
+        if (target instanceof Player || target instanceof Enemy) return true;
+        if (dinosaur.getLastHurtByMob() == target) return true;
+        if (target instanceof Mob mob && mob.getTarget() == dinosaur) return true;
+        if (target instanceof DinosaurEntity other) {
+            Dinosaur otherData = other.getDinosaur();
+            return otherData != null && otherData.diet().eatsMeat();
+        }
+        return false;
     }
 
     private static boolean isFriendlyOrInvalidTarget(DinosaurEntity dinosaur, LivingEntity target) {

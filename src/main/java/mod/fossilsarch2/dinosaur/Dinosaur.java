@@ -112,20 +112,37 @@ public record Dinosaur(
                                 + g.adultScale() + ")"));
     }
 
-    public record HungerStats(int maxHunger, int hungryThreshold, int hungerDecayRate, float tameChance) {
-        public static final HungerStats DEFAULT = new HungerStats(100, 80, 200, 0.33f);
+    /**
+     * Hunger tuning. A dinosaur seeks food below {@code hungry_threshold}, and a predator only hunts
+     * live prey below the lower {@code hunt_threshold}, so feeders and ferns are used first.
+     */
+    public record HungerStats(int maxHunger, int hungryThreshold, int huntThreshold, int hungerDecayRate,
+            float tameChance) {
+        public static final HungerStats DEFAULT = new HungerStats(100, 80, 40, 200, 0.33f);
         public static final Codec<HungerStats> CODEC = RecordCodecBuilder.<HungerStats>create(i -> i.group(
-                ExtraCodecs.POSITIVE_INT.optionalFieldOf("max_hunger", 100).forGetter(HungerStats::maxHunger),
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hungry_threshold", 80)
+                ExtraCodecs.POSITIVE_INT.optionalFieldOf("max_hunger", DEFAULT.maxHunger())
+                        .forGetter(HungerStats::maxHunger),
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hungry_threshold", DEFAULT.hungryThreshold())
                         .forGetter(HungerStats::hungryThreshold),
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hunt_threshold", DEFAULT.huntThreshold())
+                        .forGetter(HungerStats::huntThreshold),
                 // 0 disables hunger decay entirely
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hunger_decay_rate", 200)
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hunger_decay_rate", DEFAULT.hungerDecayRate())
                         .forGetter(HungerStats::hungerDecayRate),
-                UNIT_FLOAT.optionalFieldOf("tame_chance", 0.33f).forGetter(HungerStats::tameChance))
-                .apply(i, HungerStats::new)).validate(h -> h.hungryThreshold() <= h.maxHunger()
-                        ? DataResult.success(h)
-                        : DataResult.error(() -> "hungry_threshold (" + h.hungryThreshold()
-                                + ") must not exceed max_hunger (" + h.maxHunger() + ")"));
+                UNIT_FLOAT.optionalFieldOf("tame_chance", DEFAULT.tameChance()).forGetter(HungerStats::tameChance))
+                .apply(i, HungerStats::new)).validate(HungerStats::validate);
+
+        private static DataResult<HungerStats> validate(HungerStats h) {
+            if (h.hungryThreshold() > h.maxHunger()) {
+                return DataResult.error(() -> "hungry_threshold (" + h.hungryThreshold()
+                        + ") must not exceed max_hunger (" + h.maxHunger() + ")");
+            }
+            if (h.huntThreshold() > h.hungryThreshold()) {
+                return DataResult.error(() -> "hunt_threshold (" + h.huntThreshold()
+                        + ") must not exceed hungry_threshold (" + h.hungryThreshold() + ")");
+            }
+            return DataResult.success(h);
+        }
     }
 
     public record FoodStats(

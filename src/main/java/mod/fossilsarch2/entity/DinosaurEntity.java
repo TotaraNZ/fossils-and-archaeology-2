@@ -285,6 +285,12 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         entityData.set(HUNGER, Math.max(0, Math.min(getMaxHunger(), hunger)));
     }
 
+    /** Hungry enough to hunt live prey: below the species' hunt threshold, lower than {@link #isHungry()}. */
+    public boolean isHuntingHungry() {
+        Dinosaur dino = getDinosaur();
+        return dino != null && getHunger() < dino.hunger().huntThreshold();
+    }
+
     public boolean isHungry() {
         Dinosaur dino = getDinosaur();
         int threshold = dino != null ? dino.hunger().hungryThreshold() : 80;

@@ -17,13 +17,17 @@ public class DinoUseFeederGoal extends DinoFoodSourceGoal {
 
     @Override
     protected @Nullable BlockPos findFood() {
-        return searchNearby(16, 4, this::hasFood);
+        return searchBlockEntities(16, 4, FeederBlockEntity.class, this::canEatFrom);
     }
 
     @Override
     protected boolean hasFood(BlockPos pos) {
+        return dino.level().getBlockEntity(pos) instanceof FeederBlockEntity feeder && canEatFrom(feeder);
+    }
+
+    private boolean canEatFrom(FeederBlockEntity feeder) {
         Dinosaur data = dino.getDinosaur();
-        return data != null && dino.level().getBlockEntity(pos) instanceof FeederBlockEntity feeder
+        return data != null
                 && ((data.diet().eatsMeat() && feeder.hasMeat()) || (data.diet().eatsPlants() && feeder.hasVeg()));
     }
 

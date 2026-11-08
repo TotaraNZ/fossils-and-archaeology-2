@@ -33,9 +33,12 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
@@ -52,14 +55,20 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 public final class FossilsGameTests {
 
     private static final Identifier PEN = id("pen");
+    private static final Identifier LARGE_PEN = id("large_pen");
     private static final BlockPos CENTRE = new BlockPos(6, 1, 6);
-    private static final BlockPos CORNER = new BlockPos(2, 1, 2);
+    /** Far enough from the walls that a full-size adult (3.6 blocks wide) spawns clear of them. */
+    private static final BlockPos CORNER = new BlockPos(3, 1, 3);
     private static final int HUNGRY = 10;
 
     /** Test name -> (max ticks, body). Registration order is execution order. */
     private static final Map<String, TestCase> TESTS = new LinkedHashMap<>();
 
-    private record TestCase(int maxTicks, Consumer<GameTestHelper> body) {}
+    private record TestCase(int maxTicks, Consumer<GameTestHelper> body, Identifier structure) {
+        TestCase(int maxTicks, Consumer<GameTestHelper> body) {
+            this(maxTicks, body, PEN);
+        }
+    }
 
     static {
         TESTS.put("species_codec_rejects_invalid_data",
@@ -70,9 +79,17 @@ public final class FossilsGameTests {
         TESTS.put("growth_progress_survives_reload", new TestCase(60, FossilsGameTests::growthProgressSurvivesReload));
         TESTS.put("adult_herbivore_eats_from_feeder",
                 new TestCase(400, FossilsGameTests::adultHerbivoreEatsFromFeeder));
+        TESTS.put("feeder_found_anywhere_in_search_box",
+                new TestCase(600, FossilsGameTests::feederFoundAnywhereInSearchBox, LARGE_PEN));
+        TESTS.put("unreachable_feeder_is_skipped",
+                new TestCase(800, FossilsGameTests::unreachableFeederIsSkipped, LARGE_PEN));
+        TESTS.put("juvenile_predator_feeds_beside_adult_herbivore",
+                new TestCase(600, FossilsGameTests::juvenilePredatorFeedsBesideAdultHerbivore, LARGE_PEN));
         TESTS.put("herbivore_grazes_mature_fern", new TestCase(400, FossilsGameTests::herbivoreGrazesMatureFern));
         TESTS.put("carnivore_ignores_ferns", new TestCase(240, FossilsGameTests::carnivoreIgnoresFerns));
         TESTS.put("sated_predator_leaves_livestock", new TestCase(240, FossilsGameTests::satedPredatorLeavesLivestock));
+        TESTS.put("peckish_predator_uses_feeder_not_livestock",
+                new TestCase(400, FossilsGameTests::peckishPredatorUsesFeederNotLivestock));
         TESTS.put("hungry_predator_hunts_and_eats", new TestCase(600, FossilsGameTests::hungryPredatorHuntsAndEats));
         TESTS.put("egg_hatches_in_light", new TestCase(100, FossilsGameTests::eggHatchesInLight));
     }
@@ -92,7 +109,14 @@ public final class FossilsGameTests {
         Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(id("default"));
         TESTS.forEach((name, test) -> event.registerTest(id(name), new FunctionGameTestInstance(
                 ResourceKey.create(Registries.TEST_FUNCTION, id(name)),
-                new TestData<>(environment, PEN, test.maxTicks(), 0, true))));
+                testData(environment, test.structure(), test.maxTicks()))));
+    }
+
+    /** Padding keeps neighbouring tests' feeders and mobs outside each dinosaur's 16-block search box. */
+    private static TestData<Holder<TestEnvironmentDefinition<?>>> testData(
+            Holder<TestEnvironmentDefinition<?>> environment, Identifier structure, int maxTicks) {
+        return new TestData<>(environment, Level.OVERWORLD, structure, maxTicks, 0, true, Rotation.NONE, false, 1, 1,
+                false, 20);
     }
 
     // --- Species data ---
@@ -182,6 +206,52 @@ public final class FossilsGameTests {
                 "a full-size triceratops (hitbox wider than the old fixed reach) eats from the feeder"));
     }
 
+    private static void feederFoundAnywhereInSearchBox(GameTestHelper helper) {
+        // 14 blocks away on both axes: inside the 16-block search box, but 28 blocks of Manhattan distance.
+        BlockPos feederPos = new BlockPos(19, 1, 19);
+        helper.setBlock(feederPos, ModBlocks.FEEDER.get());
+        helper.getBlockEntity(feederPos, FeederBlockEntity.class)
+                .setItem(FeederBlockEntity.VEG_SLOT, new ItemStack(Items.WHEAT, 64));
+
+        DinosaurEntity dino = hungryAdult(helper, "triceratops", new BlockPos(5, 1, 5));
+        helper.succeedWhen(() -> helper.assertTrue(dino.getHunger() > HUNGRY,
+                "a hungry dinosaur finds a feeder at the corner of its search box (dino at "
+                        + helper.relativeVec(dino.position()) + ", hunger " + dino.getHunger() + ", feeder has veg "
+                        + helper.getBlockEntity(feederPos, FeederBlockEntity.class).hasVeg() + ")"));
+    }
+
+    private static void unreachableFeederIsSkipped(GameTestHelper helper) {
+        // The nearest feeder is sealed in a barrier box; a farther one is open.
+        BlockPos sealed = new BlockPos(9, 1, 5);
+        helper.setBlock(sealed, ModBlocks.FEEDER.get());
+        helper.getBlockEntity(sealed, FeederBlockEntity.class).setItem(FeederBlockEntity.VEG_SLOT,
+                new ItemStack(Items.WHEAT, 64));
+        for (BlockPos pos : BlockPos.betweenClosed(sealed.offset(-1, 0, -1), sealed.offset(1, 2, 1))) {
+            if (!pos.equals(sealed)) helper.setBlock(pos.immutable(), Blocks.BARRIER);
+        }
+        BlockPos open = new BlockPos(19, 1, 19);
+        helper.setBlock(open, ModBlocks.FEEDER.get());
+        helper.getBlockEntity(open, FeederBlockEntity.class).setItem(FeederBlockEntity.VEG_SLOT,
+                new ItemStack(Items.WHEAT, 64));
+
+        DinosaurEntity dino = hungryAdult(helper, "triceratops", new BlockPos(5, 1, 5));
+        helper.succeedWhen(() -> helper.assertTrue(dino.getHunger() > HUNGRY,
+                "a dinosaur that cannot reach the nearest feeder eats from a reachable one"));
+    }
+
+    private static void juvenilePredatorFeedsBesideAdultHerbivore(GameTestHelper helper) {
+        BlockPos feederPos = new BlockPos(16, 1, 16);
+        helper.setBlock(feederPos, ModBlocks.FEEDER.get());
+        helper.getBlockEntity(feederPos, FeederBlockEntity.class)
+                .setItem(FeederBlockEntity.MEAT_SLOT, new ItemStack(Items.BEEF, 64));
+        adult(helper, "triceratops", new BlockPos(12, 1, 16)); // a large, peaceful neighbour at the feeder
+
+        DinosaurEntity rex = helper.spawn(species("tyrannosaurus"), new BlockPos(5, 1, 5));
+        rex.setHunger(HUNGRY);
+        helper.succeedWhen(() -> helper.assertTrue(rex.getHunger() > HUNGRY,
+                "a hungry juvenile predator is not scared off its food by a peaceful herbivore"));
+    }
+
     private static void herbivoreGrazesMatureFern(GameTestHelper helper) {
         helper.setBlock(CENTRE, ModBlocks.FERN.get().defaultBlockState().setValue(FernBlock.AGE, FernBlock.MAX_AGE));
         DinosaurEntity dino = hungryAdult(helper, "triceratops", CORNER);
@@ -213,6 +283,20 @@ public final class FossilsGameTests {
             helper.assertTrue(!rex.isHungry(), "precondition: the predator is fed");
             helper.assertTrue(pig.isAlive(), "a sated predator does not hunt");
             helper.succeed();
+        });
+    }
+
+    private static void peckishPredatorUsesFeederNotLivestock(GameTestHelper helper) {
+        helper.setBlock(CENTRE, ModBlocks.FEEDER.get());
+        helper.getBlockEntity(CENTRE, FeederBlockEntity.class)
+                .setItem(FeederBlockEntity.MEAT_SLOT, new ItemStack(Items.BEEF, 64));
+        DinosaurEntity rex = adult(helper, "tyrannosaurus", CORNER);
+        int peckish = (rex.getDinosaur().hunger().hungryThreshold() + rex.getDinosaur().hunger().huntThreshold()) / 2;
+        rex.setHunger(peckish);
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(9, 1, 3));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(rex.getHunger() > peckish, "a peckish predator eats from the feeder");
+            helper.assertTrue(pig.isAlive(), "rather than hunting the livestock beside it");
         });
     }
 
@@ -249,9 +333,17 @@ public final class FossilsGameTests {
         return ModEntities.TYPES.get(path).get();
     }
 
+    /**
+     * Spawns a dinosaur that is already full-size. Growing a hatchling to adult in one step would
+     * multiply its width several times over in place, which no in-game growth stage does.
+     */
     private static DinosaurEntity adult(GameTestHelper helper, String path, BlockPos pos) {
-        DinosaurEntity dino = helper.spawn(species(path), pos);
+        DinosaurEntity dino = species(path).create(helper.getLevel(), EntitySpawnReason.MOB_SUMMONED);
         dino.setDinoAge(dino.getDinosaur().growth().maxAge());
+        Vec3 at = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        dino.snapTo(at.x, at.y, at.z, 0, 0);
+        dino.setPersistenceRequired();
+        helper.getLevel().addFreshEntity(dino);
         return dino;
     }
 
