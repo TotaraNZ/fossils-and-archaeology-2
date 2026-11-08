@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-import com.mojang.serialization.MapCodec;
 
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
@@ -23,13 +22,11 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public class FeederBlock extends BaseEntityBlock {
 
-    public static final MapCodec<FeederBlock> CODEC = BlockBehaviour.simpleCodec(FeederBlock::new);
 
     public FeederBlock(Properties settings) {
         super(settings);
     }
 
-    @Override protected MapCodec<? extends FeederBlock> codec() { return CODEC; }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new FeederBlockEntity(pos, state); }
     @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
 

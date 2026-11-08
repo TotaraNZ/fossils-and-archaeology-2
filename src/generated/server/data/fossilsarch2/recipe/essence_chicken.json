@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "C": "fossilsarch2:chicken_soup_cooked",
     "G": "minecraft:glass_bottle"

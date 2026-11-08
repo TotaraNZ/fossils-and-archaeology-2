@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:chicken_soup_raw"
+        "recipes": "fossilsarch2:chicken_soup_raw"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

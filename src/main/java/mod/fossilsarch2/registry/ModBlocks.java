@@ -27,7 +27,7 @@ public final class ModBlocks {
 			SuspiciousStoneBlock::new,
 			props -> BlockBehaviour.Properties.ofFullCopy(Blocks.STONE)
 					.sound(SoundType.STONE)
-					.pushReaction(PushReaction.DESTROY));
+					.pushReaction(PushReaction.POPPED));
 
 	public static final DeferredBlock<AnalyserBlock> ANALYSER = BLOCKS.registerBlock(
 			"analyser",

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:ancient_helmet"
+        "recipes": "fossilsarch2:ancient_helmet"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

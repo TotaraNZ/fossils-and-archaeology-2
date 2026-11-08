@@ -1,5 +1,5 @@
 plugins {
-	id 'net.neoforged.moddev' version '2.0.141'
+	id 'net.neoforged.moddev' version '2.0.148'
 	id 'maven-publish'
 	id 'me.qoomon.git-versioning' version '6.4.4'
 }
@@ -38,8 +38,13 @@ sourceSets {
 		resources {
 			// Client and server datagen outputs live in separate directories so their
 			// HashCache stale-purge passes don't delete each other's files.
+			// NeoForge 26.3 also writes datapack registry entries during client datagen;
+			// those duplicate the server output, so only take assets from the client run.
 			srcDir 'src/generated/client'
 			srcDir 'src/generated/server'
+			def clientDataDir = file('src/generated/client/data')
+			exclude { it.file.toPath().startsWith(clientDataDir.toPath()) }
+			exclude '.cache/**'
 		}
 	}
 }
@@ -65,6 +70,7 @@ neoForge {
 		}
 		server {
 			server()
+			programArgument '--nogui'
 		}
 		clientData {
 			clientData()
@@ -93,7 +99,7 @@ neoForge {
 
 dependencies {
 	// GeckoLib for models and animations (NeoForge variant)
-	implementation "com.geckolib:geckolib-neoforge-26.1:${geckolib_version}"
+	implementation "com.geckolib:geckolib-neoforge-26.3:${geckolib_version}"
 }
 
 tasks.register("regenData") {

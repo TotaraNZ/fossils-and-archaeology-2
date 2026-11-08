@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:tyrannosaurus_cooked_meat_from_smelting"
+        "recipes": "fossilsarch2:tyrannosaurus_cooked_meat_from_smelting"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

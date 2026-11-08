@@ -9,6 +9,8 @@ run/
 # Data generation output (HashCache files; the generated JSON itself is committed)
 src/generated/client/.cache/
 src/generated/server/.cache/
+# Client datagen also emits registry data that duplicates the server output
+src/generated/client/data/
 .apt_generated/
 
 # IDE

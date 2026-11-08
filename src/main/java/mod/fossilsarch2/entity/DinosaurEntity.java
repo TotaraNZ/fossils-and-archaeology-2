@@ -227,7 +227,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         return true;
     }
 
-    public boolean isBaby() {
+    /** True until the dinosaur reaches its species' max age. Vanilla {@link #isBaby()} is final and age-driven. */
+    public boolean isJuvenile() {
         Dinosaur dino = getDinosaur();
         return dino != null && getDinoAge() < dino.growth().maxAge();
     }
@@ -369,7 +370,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
         if (stack.is(ModItems.ESSENCE_CHICKEN)) {
             if (!level().isClientSide()) {
-                if (!isBaby()) {
+                if (!isJuvenile()) {
                     player.sendSystemMessage(Component.translatable("message.fossilsarch2.essence_fail_adult"));
                     return InteractionResult.PASS;
                 }
@@ -427,7 +428,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         if (heldStack.isEmpty()) {
             player.setItemInHand(hand, remainder);
         } else if (!player.getInventory().add(remainder)) {
-            player.drop(remainder, false);
+            player.drop(remainder, false, net.minecraft.util.Prediction.SERVER_ONLY);
         }
     }
 
@@ -574,7 +575,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     }
 
     protected PlayState attackController(final AnimationTest<DinosaurEntity> animTest) {
-        if (this.swinging) {
+        if (this.isSwinging()) {
             Dinosaur dino = getDinosaur();
             String attackAnimation = dino != null ? dino.animations().attack() : null;
             if (attackAnimation != null && !attackAnimation.isEmpty()) {

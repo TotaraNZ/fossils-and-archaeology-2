@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:scarab_sword_from_gold"
+        "recipes": "fossilsarch2:scarab_sword_from_gold"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

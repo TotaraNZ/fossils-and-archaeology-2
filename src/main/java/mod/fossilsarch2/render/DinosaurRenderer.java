@@ -23,7 +23,7 @@ public class DinosaurRenderer<R extends LivingEntityRenderState & GeoRenderState
         float dynamicScale = entity.getScale() * entity.getAgeScale();
         state.scale = dynamicScale;
         state.ageScale = entity.getAgeScale();
-        state.isBaby = entity.isBaby();
+        state.isBaby = entity.isJuvenile();
         this.shadowRadius = ADULT_SHADOW_RADIUS * dynamicScale;
     }
 

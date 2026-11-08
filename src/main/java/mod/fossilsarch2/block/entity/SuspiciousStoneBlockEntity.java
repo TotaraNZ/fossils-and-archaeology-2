@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.block.SuspiciousStoneBlock;
 import mod.fossilsarch2.registry.ModBlockEntities;
-import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -43,7 +43,7 @@ public class SuspiciousStoneBlockEntity extends BlockEntity {
     private static final int BRUSH_RESET_TICKS = 40;
     private static final int BRUSH_DECAY_INTERVAL_TICKS = 4;
     private static final int REQUIRED_BRUSHES = 10;
-    private static final ResourceKey<LootTable> DEFAULT_LOOT_TABLE = ResourceKey.create(
+    public static final ResourceKey<LootTable> DEFAULT_LOOT_TABLE = ResourceKey.create(
             Registries.LOOT_TABLE,
             Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "archaeology/suspicious_stone"));
 

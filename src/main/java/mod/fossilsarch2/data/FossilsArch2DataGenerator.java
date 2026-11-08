@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
@@ -16,10 +15,10 @@ import mod.fossilsarch2.world.ModWorldGeneration;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
-import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.advancements.criterion.ImpossibleTrigger;
-import net.minecraft.advancements.criterion.InventoryChangeTrigger;
-import net.minecraft.advancements.criterion.PlayerTrigger;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.advancements.triggers.ImpossibleTrigger;
+import net.minecraft.advancements.triggers.InventoryChangeTrigger;
+import net.minecraft.advancements.triggers.PlayerTrigger;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
@@ -27,17 +26,15 @@ import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.data.loot.LootTableSubProvider;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.network.chat.Component;
@@ -53,6 +50,12 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
+import mod.fossilsarch2.block.entity.SuspiciousStoneBlockEntity;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -62,6 +65,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ItemTagsProvider;
 import net.neoforged.neoforge.common.world.BiomeModifiers.AddFeaturesBiomeModifier;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataRegistryEntriesEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
@@ -74,18 +78,22 @@ public final class FossilsArch2DataGenerator {
 	private FossilsArch2DataGenerator() {}
 
 	@SubscribeEvent
-	public static void onGatherServer(GatherDataEvent.Server event) {
-		// Datapack registry entries (biome modifiers) — fires before the providers below,
-		// so they see the modded entries when generating dependent JSON.
-		event.createDatapackRegistryObjects(datapackEntries(), Set.of(FossilsArch2Mod.MOD_ID));
+	public static void onGatherRegistryEntries(GatherDataRegistryEntriesEvent event) {
+		// Datapack registry entries: biome modifiers, recipes, loot tables and advancements are all
+		// bootstrapped registry entries in 26.3+, serialised to JSON by NeoForge's datagen pipeline.
+		event.gatherFor(FossilsArch2Mod.MOD_ID)
+				.add(Registries.FEATURE, ModWorldGeneration::features)
+				.add(Registries.PLACED_FEATURE, ModWorldGeneration::placedFeatures)
+				.add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, FossilsArch2DataGenerator::biomeModifiers)
+				.recipe(FossilsRecipes::new)
+				.lootTable(new LootTableProvider.SubProviderEntry(BlockLootProvider::new, LootContextParamSets.BLOCK),
+						new LootTableProvider.SubProviderEntry(ArchaeologyLootProvider::new, LootContextParamSets.ARCHAEOLOGY))
+				.advancement(FossilsAdvancements::new);
+	}
 
-		event.createProvider(FossilsRecipeRunner::new);
-		event.createProvider((output, registries) -> new LootTableProvider(output, Set.of(),
-				List.of(new LootTableProvider.SubProviderEntry(BlockLootProvider::new, LootContextParamSets.BLOCK)),
-				registries));
+	@SubscribeEvent
+	public static void onGatherServer(GatherDataEvent.Server event) {
 		event.createProvider(FossilsItemTagProvider::new);
-		event.createProvider((output, registries) -> new AdvancementProvider(output, registries,
-				List.of(new FossilsAdvancementSubProvider())));
 	}
 
 	@SubscribeEvent
@@ -93,16 +101,13 @@ public final class FossilsArch2DataGenerator {
 		event.createProvider(FossilsModelProvider::new);
 	}
 
-	private static RegistrySetBuilder datapackEntries() {
-		return new RegistrySetBuilder()
-				.add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ctx -> {
-					HolderSet<Biome> overworld = ctx.lookup(Registries.BIOME).getOrThrow(Tags.Biomes.IS_OVERWORLD);
-					Holder<PlacedFeature> placed = ctx.lookup(Registries.PLACED_FEATURE)
-							.getOrThrow(ModWorldGeneration.FOSSIL_ORE_PLACED);
-					ctx.register(ModWorldGeneration.ADD_FOSSIL_ORE,
-							new AddFeaturesBiomeModifier(overworld, HolderSet.direct(placed),
-									GenerationStep.Decoration.UNDERGROUND_ORES));
-				});
+	private static void biomeModifiers(BootstrapContext<net.neoforged.neoforge.common.world.BiomeModifier> ctx) {
+		HolderSet<Biome> overworld = ctx.lookup(Registries.BIOME).getOrThrow(Tags.Biomes.IS_OVERWORLD);
+		Holder<PlacedFeature> placed = ctx.lookup(Registries.PLACED_FEATURE)
+				.getOrThrow(ModWorldGeneration.FOSSIL_ORE_PLACED);
+		ctx.register(ModWorldGeneration.ADD_FOSSIL_ORE,
+				new AddFeaturesBiomeModifier(overworld, HolderSet.direct(placed),
+						GenerationStep.Decoration.UNDERGROUND_ORES));
 	}
 
 	// --- Models ---
@@ -134,25 +139,9 @@ public final class FossilsArch2DataGenerator {
 
 	// --- Recipes ---
 
-	private static class FossilsRecipeRunner extends RecipeProvider.Runner {
-		FossilsRecipeRunner(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-			super(output, registries);
-		}
-
-		@Override
-		protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
-			return new FossilsRecipes(registries, output);
-		}
-
-		@Override
-		public String getName() {
-			return "Fossils & Archaeology 2 Recipes";
-		}
-	}
-
 	private static class FossilsRecipes extends RecipeProvider {
-		protected FossilsRecipes(HolderLookup.Provider registries, RecipeOutput output) {
-			super(registries, output);
+		FossilsRecipes(BootstrapContext<Recipe<?>> recipes, BootstrapContext<net.minecraft.advancements.Advancement> advancements) {
+			super(recipes, advancements, FossilsArch2Mod.MOD_ID);
 		}
 
 		@Override
@@ -167,7 +156,7 @@ public final class FossilsArch2DataGenerator {
 
 			shaped(RecipeCategory.DECORATIONS, ModBlocks.CULTIVATOR.get())
 					.pattern("GDG").pattern("GWG").pattern("III")
-					.define('G', Items.GLASS).define('D', Items.GREEN_DYE)
+					.define('G', Items.GLASS).define('D', Items.DYE.green())
 					.define('W', Items.WATER_BUCKET).define('I', Items.IRON_INGOT)
 					.unlockedBy("has_bio_fossil", has(ModItems.BIO_FOSSIL.get()))
 					.save(output);
@@ -277,16 +266,20 @@ public final class FossilsArch2DataGenerator {
 	// --- Block loot ---
 
 	private static class BlockLootProvider extends BlockLootSubProvider {
-		protected BlockLootProvider(HolderLookup.Provider registries) {
-			super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
+		BlockLootProvider(LootTableSubProvider.Context context) {
+			super(Set.of(), FeatureFlags.REGISTRY.allFlags(), context);
 		}
 
 		@Override
-		public void generate() {
+		protected void generate() {
 			dropSelf(ModBlocks.ANALYSER.get());
 			dropSelf(ModBlocks.CULTIVATOR.get());
 			dropSelf(ModBlocks.FEEDER.get());
 			dropSelf(ModBlocks.WORKTABLE.get());
+			// Fossil-bearing stone: silk touch yields plain stone, otherwise cobblestone like vanilla stone.
+			add(ModBlocks.SUSPICIOUS_STONE.get(), createSelfDropDispatchTable(Blocks.STONE, hasSilkTouch(),
+					applyExplosionCondition(Blocks.COBBLESTONE, LootItem.lootTableItem(Blocks.COBBLESTONE))));
+			add(ModBlocks.FERN.get(), createSingleItemTable(ModItems.FERN_SEED.get(), ContextIntProviders.between(1, 2)));
 		}
 
 		@Override
@@ -295,7 +288,27 @@ public final class FossilsArch2DataGenerator {
 					ModBlocks.ANALYSER.get(),
 					ModBlocks.CULTIVATOR.get(),
 					ModBlocks.FEEDER.get(),
-					ModBlocks.WORKTABLE.get());
+					ModBlocks.WORKTABLE.get(),
+					ModBlocks.SUSPICIOUS_STONE.get(),
+					ModBlocks.FERN.get());
+		}
+	}
+
+	// --- Archaeology loot (brushing suspicious stone) ---
+
+	private record ArchaeologyLootProvider(LootTableSubProvider.Context output) implements LootTableSubProvider {
+		@Override
+		public void run() {
+			output.accept(SuspiciousStoneBlockEntity.DEFAULT_LOOT_TABLE, LootTable.lootTable()
+					.withPool(LootPool.lootPool()
+							.setRolls(ContextIntProviders.exactly(1))
+							.add(LootItem.lootTableItem(ModItems.BIO_FOSSIL.get()).setWeight(25))
+							.add(LootItem.lootTableItem(ModItems.RELIC.get()).setWeight(25))
+							.add(LootItem.lootTableItem(Items.BONE).setWeight(35))
+							.add(LootItem.lootTableItem(ModItems.FERN_SEED.get()).setWeight(3))
+							.add(LootItem.lootTableItem(ModItems.BROKEN_SWORD.get()).setWeight(2))
+							.add(LootItem.lootTableItem(ModItems.BROKEN_HELMET.get()).setWeight(2))
+							.add(LootItem.lootTableItem(ModItems.SCARAB_GEM.get()).setWeight(1))));
 		}
 	}
 
@@ -333,97 +346,92 @@ public final class FossilsArch2DataGenerator {
 					.addOptionalTag(ItemTags.PANDA_FOOD)
 					.addOptionalTag(ItemTags.STRIDER_FOOD)
 					.addOptionalTag(ItemTags.ZOMBIE_HORSE_FOOD)
-					.add(Items.APPLE)
-					.add(Items.MELON_SLICE)
-					.add(Items.SWEET_BERRIES)
-					.add(Items.GLOW_BERRIES)
-					.add(Items.KELP)
-					.add(Items.DRIED_KELP)
-					.add(Items.BREAD)
-					.add(Items.COOKIE)
-					.add(Items.PUMPKIN_PIE)
-					.add(ModItems.FERN_SEED.get());
+					.add(key(Items.APPLE))
+					.add(key(Items.MELON_SLICE))
+					.add(key(Items.SWEET_BERRIES))
+					.add(key(Items.GLOW_BERRIES))
+					.add(key(Items.KELP))
+					.add(key(Items.DRIED_KELP))
+					.add(key(Items.BREAD))
+					.add(key(Items.COOKIE))
+					.add(key(Items.PUMPKIN_PIE))
+					.add(key(ModItems.FERN_SEED.get()));
 		}
 
 		private void addItemIfPresent(net.minecraft.tags.TagKey<Item> tagKey, String path) {
 			Item item = BuiltInRegistries.ITEM.getValue(
 					Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path));
 			if (item != Items.AIR) {
-				tag(tagKey).add(item);
+				tag(tagKey).add(key(item));
 			}
+		}
+
+		private static ResourceKey<Item> key(Item item) {
+			return BuiltInRegistries.ITEM.getResourceKey(item).orElseThrow();
 		}
 	}
 
 	// --- Advancements ---
 
-	private static class FossilsAdvancementSubProvider implements AdvancementSubProvider {
-		private static final Identifier BACKGROUND = Identifier.fromNamespaceAndPath("minecraft",
-				"textures/gui/advancements/backgrounds/stone.png");
+	private static class FossilsAdvancements extends AdvancementSubProvider {
+		private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("gui/advancements/backgrounds/stone");
+
+		FossilsAdvancements(BootstrapContext<Advancement> output) {
+			super(output);
+		}
 
 		@Override
-		public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> consumer) {
+		public void generate() {
 			AdvancementHolder root = Advancement.Builder.advancement()
-					.display(ModBlocks.SUSPICIOUS_STONE.get(),
+					.rootDisplay(ModBlocks.SUSPICIOUS_STONE.get().asItem(),
 							Component.translatable("advancement.fossilsarch2.root.title"),
 							Component.translatable("advancement.fossilsarch2.root.description"),
 							BACKGROUND, AdvancementType.TASK, false, false, false)
-					.addCriterion("entered_world",
-							PlayerTrigger.TriggerInstance.located(Optional.empty()))
-					.save(consumer, ModAdvancements.ROOT.toString());
+					.addCriterion("entered_world", PlayerTrigger.TriggerInstance.located(Optional.empty()))
+					.save(output, ModAdvancements.ROOT.toString());
 
 			AdvancementHolder discoverBioFossil = Advancement.Builder.advancement()
 					.parent(root)
 					.display(ModItems.BIO_FOSSIL.get(),
 							Component.translatable("advancement.fossilsarch2.discover_bio_fossil.title"),
 							Component.translatable("advancement.fossilsarch2.discover_bio_fossil.description"),
-							null, AdvancementType.TASK, true, true, false)
-					.addCriterion("has_bio_fossil",
-							InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.BIO_FOSSIL.get()))
-					.save(consumer, ModAdvancements.DISCOVER_BIO_FOSSIL.toString());
+							AdvancementType.TASK, true, true, false)
+					.addCriterion("has_bio_fossil", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.BIO_FOSSIL.get()))
+					.save(output, ModAdvancements.DISCOVER_BIO_FOSSIL.toString());
 
 			AdvancementHolder extractDna = Advancement.Builder.advancement()
 					.parent(discoverBioFossil)
 					.display(ModItems.DINOPEDIA.get(),
 							Component.translatable("advancement.fossilsarch2.extract_dna.title"),
 							Component.translatable("advancement.fossilsarch2.extract_dna.description"),
-							null, AdvancementType.TASK, true, true, false)
-					.addCriterion("has_dna",
-							InventoryChangeTrigger.TriggerInstance.hasItems(getDnaItems()))
-					.save(consumer, ModAdvancements.EXTRACT_DNA.toString());
+							AdvancementType.TASK, true, true, false)
+					.addCriterion("has_dna", InventoryChangeTrigger.TriggerInstance.hasItems(itemsWithSuffix("_dna")))
+					.save(output, ModAdvancements.EXTRACT_DNA.toString());
 
 			AdvancementHolder cultivateEgg = Advancement.Builder.advancement()
 					.parent(extractDna)
 					.display(Items.EGG,
 							Component.translatable("advancement.fossilsarch2.cultivate_egg.title"),
 							Component.translatable("advancement.fossilsarch2.cultivate_egg.description"),
-							null, AdvancementType.TASK, true, true, false)
-					.addCriterion("has_egg",
-							InventoryChangeTrigger.TriggerInstance.hasItems(getEggItems()))
-					.save(consumer, ModAdvancements.CULTIVATE_EGG.toString());
+							AdvancementType.TASK, true, true, false)
+					.addCriterion("has_egg", InventoryChangeTrigger.TriggerInstance.hasItems(itemsWithSuffix("_egg")))
+					.save(output, ModAdvancements.CULTIVATE_EGG.toString());
 
 			Advancement.Builder.advancement()
 					.parent(cultivateEgg)
 					.display(ModItems.DINOPEDIA.get(),
 							Component.translatable("advancement.fossilsarch2.hatch_dinosaur.title"),
 							Component.translatable("advancement.fossilsarch2.hatch_dinosaur.description"),
-							null, AdvancementType.GOAL, true, true, false)
+							AdvancementType.GOAL, true, true, false)
 					.addCriterion(ModAdvancements.HATCHED_DINOSAUR_CRITERION,
 							CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
-					.save(consumer, ModAdvancements.HATCH_DINOSAUR.toString());
+					.save(output, ModAdvancements.HATCH_DINOSAUR.toString());
 		}
 
-		private static ItemLike[] getDnaItems() {
+		private static ItemLike[] itemsWithSuffix(String suffix) {
 			return ModItems.dinosaurs().keySet().stream()
 					.map(id -> BuiltInRegistries.ITEM.getValue(
-							Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, id + "_dna")))
-					.filter(item -> item != Items.AIR)
-					.toArray(ItemLike[]::new);
-		}
-
-		private static ItemLike[] getEggItems() {
-			return ModItems.dinosaurs().keySet().stream()
-					.map(id -> BuiltInRegistries.ITEM.getValue(
-							Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, id + "_egg")))
+							Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, id + suffix)))
 					.filter(item -> item != Items.AIR)
 					.toArray(ItemLike[]::new);
 		}

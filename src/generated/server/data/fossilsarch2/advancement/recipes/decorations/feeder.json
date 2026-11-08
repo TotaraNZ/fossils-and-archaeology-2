@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:feeder"
+        "recipes": "fossilsarch2:feeder"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

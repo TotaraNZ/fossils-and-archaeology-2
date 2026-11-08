@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:analyser"
+        "recipes": "fossilsarch2:analyser"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

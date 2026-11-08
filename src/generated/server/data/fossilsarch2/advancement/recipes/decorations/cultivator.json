@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:cultivator"
+        "recipes": "fossilsarch2:cultivator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

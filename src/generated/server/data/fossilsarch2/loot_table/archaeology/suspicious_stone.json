@@ -1,9 +1,7 @@
 {
   "type": "minecraft:archaeology",
-  "random_sequence": "fossilsarch2:archaeology/suspicious_stone",
   "pools": [
     {
-      "rolls": 1.0,
       "entries": [
         {
           "type": "minecraft:item",
@@ -37,10 +35,11 @@
         },
         {
           "type": "minecraft:item",
-          "name": "fossilsarch2:scarab_gem",
-          "weight": 1
+          "name": "fossilsarch2:scarab_gem"
         }
-      ]
+      ],
+      "rolls": 1
     }
-  ]
+  ],
+  "random_sequence": "fossilsarch2:archaeology/suspicious_stone"
 }

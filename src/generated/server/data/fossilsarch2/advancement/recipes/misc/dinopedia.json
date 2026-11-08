@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:dinopedia"
+        "recipes": "fossilsarch2:dinopedia"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

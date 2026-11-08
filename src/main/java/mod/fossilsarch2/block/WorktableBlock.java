@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-import com.mojang.serialization.MapCodec;
 
 import mod.fossilsarch2.block.entity.WorktableBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
@@ -31,14 +30,12 @@ public class WorktableBlock extends BaseEntityBlock {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    public static final MapCodec<WorktableBlock> CODEC = BlockBehaviour.simpleCodec(WorktableBlock::new);
 
     public WorktableBlock(Properties settings) {
         super(settings);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
-    @Override protected MapCodec<? extends WorktableBlock> codec() { return CODEC; }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

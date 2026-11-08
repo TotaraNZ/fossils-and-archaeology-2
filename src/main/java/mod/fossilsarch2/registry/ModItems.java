@@ -13,10 +13,7 @@ import mod.fossilsarch2.item.RemainderFoodItem;
 import mod.fossilsarch2.item.ScarabGemMaterial;
 import mod.fossilsarch2.item.TooltipItem;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.item.ToolMaterial;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -59,18 +56,17 @@ public final class ModItems {
 	public static final DeferredItem<TooltipItem> BROKEN_HELMET = ITEMS.registerItem("broken_helmet",
 			props -> new TooltipItem(props, "tooltip.fossilsarch2.broken_artifact"));
 
-	// Scarab tools (sword + pickaxe via vanilla property delegates;
-	// axe/shovel/hoe still need subclass instances since their delegates don't exist as Item.Properties methods)
+	// Scarab tools, all built from vanilla Item.Properties tool delegates
 	public static final DeferredItem<Item> SCARAB_SWORD = ITEMS.registerItem("scarab_sword",
 			Item::new, props -> props.sword(SCARAB, 3.0f, -2.4f));
-	public static final DeferredItem<AxeItem> SCARAB_AXE = ITEMS.registerItem("scarab_axe",
-			props -> new AxeItem(SCARAB, 5.0f, -3.0f, props));
+	public static final DeferredItem<Item> SCARAB_AXE = ITEMS.registerItem("scarab_axe",
+			Item::new, props -> props.axe(SCARAB, 5.0f, -3.0f));
 	public static final DeferredItem<Item> SCARAB_PICKAXE = ITEMS.registerItem("scarab_pickaxe",
 			Item::new, props -> props.pickaxe(SCARAB, 1.0f, -2.8f));
-	public static final DeferredItem<ShovelItem> SCARAB_SHOVEL = ITEMS.registerItem("scarab_shovel",
-			props -> new ShovelItem(SCARAB, 1.5f, -3.0f, props));
-	public static final DeferredItem<HoeItem> SCARAB_HOE = ITEMS.registerItem("scarab_hoe",
-			props -> new HoeItem(SCARAB, -3.0f, 0.0f, props));
+	public static final DeferredItem<Item> SCARAB_SHOVEL = ITEMS.registerItem("scarab_shovel",
+			Item::new, props -> props.shovel(SCARAB, 1.5f, -3.0f));
+	public static final DeferredItem<Item> SCARAB_HOE = ITEMS.registerItem("scarab_hoe",
+			Item::new, props -> props.hoe(SCARAB, -3.0f, 0.0f));
 
 	public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
 		DINOSAURS.clear();

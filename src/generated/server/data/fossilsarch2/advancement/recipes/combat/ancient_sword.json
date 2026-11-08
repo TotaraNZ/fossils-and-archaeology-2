@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:ancient_sword"
+        "recipes": "fossilsarch2:ancient_sword"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

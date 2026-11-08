@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-import com.mojang.serialization.MapCodec;
 
 import mod.fossilsarch2.block.entity.SuspiciousStoneBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -25,7 +24,6 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 public class SuspiciousStoneBlock extends BaseEntityBlock {
 
-    public static final MapCodec<SuspiciousStoneBlock> CODEC = BlockBehaviour.simpleCodec(SuspiciousStoneBlock::new);
     public static final IntegerProperty DUSTED = BlockStateProperties.DUSTED;
 
     private final Block baseBlock = Blocks.STONE;
@@ -37,10 +35,6 @@ public class SuspiciousStoneBlock extends BaseEntityBlock {
         registerDefaultState(defaultBlockState().setValue(DUSTED, 0));
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

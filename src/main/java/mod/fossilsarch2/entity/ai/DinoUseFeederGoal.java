@@ -86,7 +86,8 @@ public class DinoUseFeederGoal extends Goal {
         BlockPos dinoPos = dino.blockPosition();
         Level level = dino.level();
 
-        for (BlockPos pos : BlockPos.withinManhattan(dinoPos, 16, 4, 16)) {
+        for (BlockPos pos : BlockPos.withinManhattan(dinoPos, 16)) {
+            if (Math.abs(pos.getY() - dinoPos.getY()) > 4) continue;
             if (level.getBlockEntity(pos) instanceof FeederBlockEntity feeder) {
                 Dinosaur dinoData = dino.getDinosaur();
                 if (dinoData == null) continue;

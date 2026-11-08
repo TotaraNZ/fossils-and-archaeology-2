@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:essence_chicken"
+        "recipes": "fossilsarch2:essence_chicken"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -19,20 +19,20 @@ config = "fossilsarch2.mixins.json"
 [[dependencies.fossilsarch2]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26.1.2.0-beta,)"
+versionRange = "[26.3.0.101,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fossilsarch2]]
 modId = "minecraft"
 type = "required"
-versionRange = "[26.1.2,26.2)"
+versionRange = "[26.3,26.4)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fossilsarch2]]
 modId = "geckolib"
 type = "required"
-versionRange = "[5.5,)"
+versionRange = "[5.5.7,)"
 ordering = "AFTER"
 side = "BOTH"

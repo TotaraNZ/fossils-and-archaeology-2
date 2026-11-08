@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "fossilsarch2:chicken_soup_cooked_from_smoking"
+        "recipes": "fossilsarch2:chicken_soup_cooked_from_smoking"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

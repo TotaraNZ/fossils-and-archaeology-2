@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-import com.mojang.serialization.MapCodec;
 
 import mod.fossilsarch2.block.entity.CultivatorBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
@@ -27,7 +26,6 @@ import net.minecraft.world.phys.BlockHitResult;
 public class CultivatorBlock extends BaseEntityBlock {
 
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    public static final MapCodec<CultivatorBlock> CODEC = BlockBehaviour.simpleCodec(CultivatorBlock::new);
 
     public CultivatorBlock(Properties settings) {
         super(settings);
@@ -39,7 +37,6 @@ public class CultivatorBlock extends BaseEntityBlock {
         builder.add(LIT);
     }
 
-    @Override protected MapCodec<? extends CultivatorBlock> codec() { return CODEC; }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new CultivatorBlockEntity(pos, state); }
     @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
 

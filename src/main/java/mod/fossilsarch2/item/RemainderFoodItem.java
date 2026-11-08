@@ -23,7 +23,7 @@ public class RemainderFoodItem extends Item {
 
         if (entity instanceof Player player && !player.getAbilities().instabuild) {
             if (!player.getInventory().add(remainder)) {
-                player.drop(remainder, false);
+                player.drop(remainder, false, net.minecraft.util.Prediction.SERVER_ONLY);
             }
         }
 

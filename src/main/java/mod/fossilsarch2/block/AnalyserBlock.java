@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-import com.mojang.serialization.MapCodec;
 
 import mod.fossilsarch2.block.entity.AnalyserBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
@@ -31,7 +30,6 @@ public class AnalyserBlock extends BaseEntityBlock {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    public static final MapCodec<AnalyserBlock> CODEC = BlockBehaviour.simpleCodec(AnalyserBlock::new);
 
     public AnalyserBlock(Properties settings) {
         super(settings);
@@ -45,10 +43,6 @@ public class AnalyserBlock extends BaseEntityBlock {
         builder.add(FACING, LIT);
     }
 
-    @Override
-    protected MapCodec<? extends AnalyserBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
