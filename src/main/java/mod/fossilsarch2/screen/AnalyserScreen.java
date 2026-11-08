@@ -4,14 +4,14 @@ import mod.fossilsarch2.FossilsArch2Mod;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Inventory;
 
 public class AnalyserScreen extends AbstractContainerScreen<AnalyserScreenHandler> {
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/analyser.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
+            "textures/gui/analyser.png");
 
     // Progress bar: 21px wide, 9px tall, at GUI position (80, 22)
     // Texture source at (177, 18)

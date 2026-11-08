@@ -2,15 +2,15 @@ package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.block.entity.CultivatorBlockEntity;
 import mod.fossilsarch2.registry.ModScreenHandlers;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 public class CultivatorScreenHandler extends AbstractContainerMenu {
 
@@ -25,7 +25,7 @@ public class CultivatorScreenHandler extends AbstractContainerMenu {
 
     // Server constructor
     public CultivatorScreenHandler(int syncId, Inventory playerInventory,
-                                    Container inventory, ContainerData propertyDelegate) {
+            Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.CULTIVATOR.get(), syncId);
         checkContainerSize(inventory, CultivatorBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;

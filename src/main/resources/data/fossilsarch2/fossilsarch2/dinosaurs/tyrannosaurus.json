@@ -30,6 +30,8 @@
     },
     "animations": {
         "eat": "",
-        "special": ["sniff"]
+        "special": [
+            "sniff"
+        ]
     }
 }

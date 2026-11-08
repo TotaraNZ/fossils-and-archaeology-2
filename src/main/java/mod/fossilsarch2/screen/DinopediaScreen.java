@@ -7,22 +7,22 @@ import mod.fossilsarch2.entity.DinosaurEntity;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.world.entity.EntityReference;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityReference;
+import net.minecraft.world.entity.LivingEntity;
 
 /**
  * Faithful re-creation of the original Fossils & Archaeology dinopedia GUI.
  * Layout matches GuiPedia.java + EntityDinosaur.ShowPedia() from the revival mod.
  * Icons rendered from a single atlas texture.
  */
-public class DinopediaScreen extends Screen {
+public final class DinopediaScreen extends Screen {
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/dinopedia.png");
-    private static final Identifier ICONS =
-            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/pedia_icons.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
+            "textures/gui/dinopedia.png");
+    private static final Identifier ICONS = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
+            "textures/gui/pedia_icons.png");
 
     // Icon positions within the 32x16 atlas
     private static final int ICON_CLOCK_U = 0;

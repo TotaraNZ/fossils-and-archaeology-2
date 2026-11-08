@@ -111,7 +111,8 @@ public abstract class DinoFoodSourceGoal extends Goal {
     }
 
     private boolean moveToTarget() {
-        return target != null && dino.getNavigation().moveTo(target.getX() + 0.5, target.getY(), target.getZ() + 0.5, 1.0);
+        return target != null
+                && dino.getNavigation().moveTo(target.getX() + 0.5, target.getY(), target.getZ() + 0.5, 1.0);
     }
 
     /** Horizontal reach from the dinosaur's edge, plus a block-height vertical allowance. */
@@ -124,7 +125,8 @@ public abstract class DinoFoodSourceGoal extends Goal {
     }
 
     /** Nearest position (Manhattan order) within the given radii that matches {@code test}. */
-    protected @Nullable BlockPos searchNearby(int horizontal, int vertical, java.util.function.Predicate<BlockPos> test) {
+    protected @Nullable BlockPos searchNearby(int horizontal, int vertical,
+            java.util.function.Predicate<BlockPos> test) {
         BlockPos origin = dino.blockPosition();
         for (BlockPos pos : BlockPos.withinManhattan(origin, horizontal + vertical)) {
             if (Math.abs(pos.getY() - origin.getY()) > vertical

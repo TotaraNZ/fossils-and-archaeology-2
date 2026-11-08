@@ -4,14 +4,14 @@ import mod.fossilsarch2.FossilsArch2Mod;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Inventory;
 
 public class WorktableScreen extends AbstractContainerScreen<WorktableScreenHandler> {
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/worktable.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
+            "textures/gui/worktable.png");
 
     public WorktableScreen(WorktableScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title);

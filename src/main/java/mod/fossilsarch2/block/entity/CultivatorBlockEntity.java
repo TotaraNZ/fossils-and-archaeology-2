@@ -58,6 +58,9 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
                 case 0 -> cookTime = value;
                 case 2 -> burnTime = value;
                 case 3 -> currentItemBurnTime = value;
+                default -> {
+                    // index 1 (max cook time) is a constant and not settable
+                }
             }
         }
 
@@ -73,9 +76,18 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
 
     // --- Inventory ---
 
-    @Override public int getContainerSize() { return INVENTORY_SIZE; }
-    @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
-    @Override public ItemStack getItem(int slot) { return items.get(slot); }
+    @Override
+    public int getContainerSize() {
+        return INVENTORY_SIZE;
+    }
+    @Override
+    public boolean isEmpty() {
+        return items.stream().allMatch(ItemStack::isEmpty);
+    }
+    @Override
+    public ItemStack getItem(int slot) {
+        return items.get(slot);
+    }
 
     @Override
     public ItemStack removeItem(int slot, int amount) {
@@ -100,7 +112,10 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
         return Container.stillValidBlockEntity(this, player);
     }
 
-    @Override public void clearContent() { items.clear(); }
+    @Override
+    public void clearContent() {
+        items.clear();
+    }
 
     // --- NBT ---
 
@@ -186,7 +201,8 @@ public class CultivatorBlockEntity extends BlockEntity implements MenuProvider, 
 
         boolean isBurning = entity.burnTime > 0;
         if (wasBurning != isBurning && state.hasProperty(mod.fossilsarch2.block.CultivatorBlock.LIT)) {
-            world.setBlock(pos, state.setValue(mod.fossilsarch2.block.CultivatorBlock.LIT, isBurning), Block.UPDATE_ALL);
+            world.setBlock(pos, state.setValue(mod.fossilsarch2.block.CultivatorBlock.LIT, isBurning),
+                    Block.UPDATE_ALL);
         }
 
         if (dirty) entity.setChanged();

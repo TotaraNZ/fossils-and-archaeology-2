@@ -60,7 +60,8 @@ public class SuspiciousStoneBlockEntity extends BlockEntity {
         setLootTable(DEFAULT_LOOT_TABLE, ThreadLocalRandom.current().nextLong());
     }
 
-    public boolean brush(long currentTime, ServerLevel world, LivingEntity brusher, Direction direction, ItemStack tool) {
+    public boolean brush(long currentTime, ServerLevel world, LivingEntity brusher, Direction direction,
+            ItemStack tool) {
         if (hitDirection == null) {
             hitDirection = direction;
         }
@@ -86,7 +87,8 @@ public class SuspiciousStoneBlockEntity extends BlockEntity {
 
         int dustedLevel = getDustedLevel();
         if (previousDustedLevel != dustedLevel) {
-            world.setBlock(worldPosition, getBlockState().setValue(SuspiciousStoneBlock.DUSTED, dustedLevel), Block.UPDATE_ALL);
+            world.setBlock(worldPosition, getBlockState().setValue(SuspiciousStoneBlock.DUSTED, dustedLevel),
+                    Block.UPDATE_ALL);
         }
 
         return false;
@@ -99,7 +101,8 @@ public class SuspiciousStoneBlockEntity extends BlockEntity {
             int dustedLevel = getDustedLevel();
 
             if (previousDustedLevel != dustedLevel) {
-                world.setBlock(worldPosition, getBlockState().setValue(SuspiciousStoneBlock.DUSTED, dustedLevel), Block.UPDATE_ALL);
+                world.setBlock(worldPosition, getBlockState().setValue(SuspiciousStoneBlock.DUSTED, dustedLevel),
+                        Block.UPDATE_ALL);
             }
 
             nextDustTime = world.getGameTime() + BRUSH_DECAY_INTERVAL_TICKS;

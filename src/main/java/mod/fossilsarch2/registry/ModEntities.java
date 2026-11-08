@@ -19,49 +19,46 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModEntities {
 
-	private static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
-			DeferredRegister.create(Registries.ENTITY_TYPE, FossilsArch2Mod.MOD_ID);
+    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE,
+            FossilsArch2Mod.MOD_ID);
 
-	public static final Map<String, DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>>> TYPES = new HashMap<>();
+    public static final Map<String, DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>>> TYPES = new HashMap<>();
 
-	public static DeferredHolder<EntityType<?>, EntityType<DinoEggEntity>> DINO_EGG;
+    public static final DeferredHolder<EntityType<?>, EntityType<DinoEggEntity>> DINO_EGG = ENTITY_TYPES.register(
+            "dino_egg",
+            key -> EntityType.Builder.of(DinoEggEntity::new, MobCategory.MISC)
+                    .sized(0.4f, 0.5f)
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, key)));
 
-	private static final Map<String, Dinosaur> DINOSAURS_FOR_ATTRIBUTES = new HashMap<>();
+    private static final Map<String, Dinosaur> DINOSAURS_FOR_ATTRIBUTES = new HashMap<>();
 
-	public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
-		DINOSAURS_FOR_ATTRIBUTES.clear();
-		DINOSAURS_FOR_ATTRIBUTES.putAll(dinosaurs);
+    public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
+        DINOSAURS_FOR_ATTRIBUTES.clear();
+        DINOSAURS_FOR_ATTRIBUTES.putAll(dinosaurs);
 
-		for (Map.Entry<String, Dinosaur> entry : dinosaurs.entrySet()) {
-			String id = entry.getKey();
-			Dinosaur d = entry.getValue();
-			ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE,
-					Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, id));
-			DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>> holder = ENTITY_TYPES.register(
-					id,
-					() -> EntityType.Builder.of(DinosaurEntity::new, MobCategory.CREATURE)
-							.sized(d.growth().width(), d.growth().height())
-							.build(key));
-			TYPES.put(id, holder);
-		}
+        for (Map.Entry<String, Dinosaur> entry : dinosaurs.entrySet()) {
+            String id = entry.getKey();
+            Dinosaur d = entry.getValue();
+            ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE,
+                    Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, id));
+            DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>> holder = ENTITY_TYPES.register(
+                    id,
+                    () -> EntityType.Builder.of(DinosaurEntity::new, MobCategory.CREATURE)
+                            .sized(d.growth().width(), d.growth().height())
+                            .build(key));
+            TYPES.put(id, holder);
+        }
 
-		ResourceKey<EntityType<?>> eggKey = ResourceKey.create(Registries.ENTITY_TYPE,
-				Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dino_egg"));
-		DINO_EGG = ENTITY_TYPES.register("dino_egg",
-				() -> EntityType.Builder.of(DinoEggEntity::new, MobCategory.MISC)
-						.sized(0.4f, 0.5f)
-						.build(eggKey));
+        ENTITY_TYPES.register(modEventBus);
+    }
 
-		ENTITY_TYPES.register(modEventBus);
-	}
+    public static void onEntityAttributes(EntityAttributeCreationEvent event) {
+        for (Map.Entry<String, Dinosaur> entry : DINOSAURS_FOR_ATTRIBUTES.entrySet()) {
+            DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>> holder = TYPES.get(entry.getKey());
+            if (holder == null) continue;
+            event.put(holder.get(), DinosaurEntity.createAttributes(entry.getValue()).build());
+        }
+    }
 
-	public static void onEntityAttributes(EntityAttributeCreationEvent event) {
-		for (Map.Entry<String, Dinosaur> entry : DINOSAURS_FOR_ATTRIBUTES.entrySet()) {
-			DeferredHolder<EntityType<?>, EntityType<DinosaurEntity>> holder = TYPES.get(entry.getKey());
-			if (holder == null) continue;
-			event.put(holder.get(), DinosaurEntity.createAttributes(entry.getValue()).build());
-		}
-	}
-
-	private ModEntities() {}
+    private ModEntities() {}
 }

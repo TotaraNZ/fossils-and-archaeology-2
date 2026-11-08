@@ -12,16 +12,16 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  */
 public final class ModNetworking {
 
-	private static final String VERSION = "1";
+    private static final String VERSION = "1";
 
-	public static void onRegisterPayloadHandlers(RegisterPayloadHandlersEvent event) {
-		PayloadRegistrar registrar = event.registrar(VERSION);
-		registrar.playToClient(DinopediaPayload.TYPE, DinopediaPayload.CODEC);
-	}
+    public static void onRegisterPayloadHandlers(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(VERSION);
+        registrar.playToClient(DinopediaPayload.TYPE, DinopediaPayload.CODEC);
+    }
 
-	public static void sendDinopedia(ServerPlayer player, int entityId) {
-		PacketDistributor.sendToPlayer(player, new DinopediaPayload(entityId));
-	}
+    public static void sendDinopedia(ServerPlayer player, int entityId) {
+        PacketDistributor.sendToPlayer(player, new DinopediaPayload(entityId));
+    }
 
-	private ModNetworking() {}
+    private ModNetworking() {}
 }

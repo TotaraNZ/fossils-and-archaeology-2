@@ -7,7 +7,6 @@ import java.util.Map;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
-
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
 import net.neoforged.fml.ModContainer;
@@ -24,32 +23,32 @@ import net.neoforged.fml.ModContainer;
  */
 public final class DinosaurDiscovery {
 
-	// Custom datapack registries live under data/<ns>/<modid>/<registryname>/.
-	private static final String DINO_DIR = "data/" + FossilsArch2Mod.MOD_ID
-			+ "/" + FossilsArch2Mod.MOD_ID + "/dinosaurs";
+    // Custom datapack registries live under data/<ns>/<modid>/<registryname>/.
+    private static final String DINO_DIR = "data/" + FossilsArch2Mod.MOD_ID
+            + "/" + FossilsArch2Mod.MOD_ID + "/dinosaurs";
 
-	private DinosaurDiscovery() {}
+    private DinosaurDiscovery() {}
 
-	public static Map<String, Dinosaur> discoverFromMod(ModContainer container) {
-		Map<String, Dinosaur> result = new LinkedHashMap<>();
-		var jar = container.getModInfo().getOwningFile().getFile().getContents();
-		jar.visitContent(DINO_DIR, (path, resource) -> {
-			if (!path.endsWith(".json")) return;
-			String fileName = path.substring(path.lastIndexOf('/') + 1);
-			String id = fileName.substring(0, fileName.length() - ".json".length());
-			try (BufferedReader reader = resource.bufferedReader()) {
-				JsonElement json = JsonParser.parseReader(reader);
-				Dinosaur dinosaur = Dinosaur.CODEC.parse(JsonOps.INSTANCE, json)
-						.resultOrPartial(error -> FossilsArch2Mod.LOGGER.error(
-								"Failed to parse dinosaur '{}': {}", id, error))
-						.orElse(null);
-				if (dinosaur != null) {
-					result.put(id, dinosaur);
-				}
-			} catch (Exception e) {
-				FossilsArch2Mod.LOGGER.error("Error reading dinosaur JSON: {}", path, e);
-			}
-		});
-		return result;
-	}
+    public static Map<String, Dinosaur> discoverFromMod(ModContainer container) {
+        Map<String, Dinosaur> result = new LinkedHashMap<>();
+        var jar = container.getModInfo().getOwningFile().getFile().getContents();
+        jar.visitContent(DINO_DIR, (path, resource) -> {
+            if (!path.endsWith(".json")) return;
+            String fileName = path.substring(path.lastIndexOf('/') + 1);
+            String id = fileName.substring(0, fileName.length() - ".json".length());
+            try (BufferedReader reader = resource.bufferedReader()) {
+                JsonElement json = JsonParser.parseReader(reader);
+                Dinosaur dinosaur = Dinosaur.CODEC.parse(JsonOps.INSTANCE, json)
+                        .resultOrPartial(error -> FossilsArch2Mod.LOGGER.error(
+                                "Failed to parse dinosaur '{}': {}", id, error))
+                        .orElse(null);
+                if (dinosaur != null) {
+                    result.put(id, dinosaur);
+                }
+            } catch (Exception e) {
+                FossilsArch2Mod.LOGGER.error("Error reading dinosaur JSON: {}", path, e);
+            }
+        });
+        return result;
+    }
 }

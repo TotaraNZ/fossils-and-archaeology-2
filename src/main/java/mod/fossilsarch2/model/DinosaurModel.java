@@ -1,9 +1,9 @@
 package mod.fossilsarch2.model;
 
-import mod.fossilsarch2.entity.DinosaurEntity;
-import net.minecraft.resources.Identifier;
 import com.geckolib.model.GeoModel;
 import com.geckolib.renderer.base.GeoRenderState;
+import mod.fossilsarch2.entity.DinosaurEntity;
+import net.minecraft.resources.Identifier;
 
 /**
  * One model per species, resolving assets by convention from the species ID:

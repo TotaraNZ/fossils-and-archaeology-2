@@ -5,7 +5,6 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 
@@ -68,8 +67,8 @@ public record Dinosaur(
             HungerStats.CODEC.optionalFieldOf("hunger", HungerStats.DEFAULT).forGetter(Dinosaur::hunger),
             FoodStats.CODEC.fieldOf("food").forGetter(Dinosaur::food),
             Animations.CODEC.optionalFieldOf("animations", Animations.DEFAULT).forGetter(Dinosaur::animations),
-            Codec.STRING.listOf().optionalFieldOf("variants", List.of()).forGetter(Dinosaur::variants)
-    ).apply(i, Dinosaur::new));
+            Codec.STRING.listOf().optionalFieldOf("variants", List.of()).forGetter(Dinosaur::variants))
+            .apply(i, Dinosaur::new));
 
     public record CombatStats(
             double health, double speed, double attackDamage,
@@ -81,16 +80,18 @@ public record Dinosaur(
                 Codec.doubleRange(1.0, Double.MAX_VALUE).fieldOf("health").forGetter(CombatStats::health),
                 NON_NEGATIVE_DOUBLE.fieldOf("speed").forGetter(CombatStats::speed),
                 NON_NEGATIVE_DOUBLE.fieldOf("attack_damage").forGetter(CombatStats::attackDamage),
-                ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("combat_modifier", 1.0f).forGetter(CombatStats::combatModifier),
+                ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("combat_modifier", 1.0f)
+                        .forGetter(CombatStats::combatModifier),
                 ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("confidence", 1.0f).forGetter(CombatStats::confidence),
                 ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("chase_speed", 1.5f).forGetter(CombatStats::chaseSpeed),
                 ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("flee_speed", 1.25f).forGetter(CombatStats::fleeSpeed),
                 UNIT_FLOAT.optionalFieldOf("min_hunt_progress", 0.6f).forGetter(CombatStats::minHuntProgress),
-                UNIT_FLOAT.optionalFieldOf("player_aggression_progress", 0.85f).forGetter(CombatStats::playerAggressionProgress),
+                UNIT_FLOAT.optionalFieldOf("player_aggression_progress", 0.85f)
+                        .forGetter(CombatStats::playerAggressionProgress),
                 UNIT_FLOAT.optionalFieldOf("defensive_progress", 0.5f).forGetter(CombatStats::defensiveProgress),
                 ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("prey_ratio_max", 0.8f).forGetter(CombatStats::preyRatioMax),
-                ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("fear_ratio", 1.3f).forGetter(CombatStats::fearRatio)
-        ).apply(i, CombatStats::new));
+                ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("fear_ratio", 1.3f).forGetter(CombatStats::fearRatio))
+                .apply(i, CombatStats::new));
     }
 
     public record GrowthStats(
@@ -104,23 +105,27 @@ public record Dinosaur(
                 ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("adult_scale", 1.0f).forGetter(GrowthStats::adultScale),
                 ExtraCodecs.POSITIVE_INT.fieldOf("max_age").forGetter(GrowthStats::maxAge),
                 ExtraCodecs.POSITIVE_INT.fieldOf("grow_time").forGetter(GrowthStats::growTime),
-                ExtraCodecs.POSITIVE_INT.fieldOf("hatch_time").forGetter(GrowthStats::hatchTime)
-        ).apply(i, GrowthStats::new)).validate(g -> g.babyScale() <= g.adultScale()
-                ? DataResult.success(g)
-                : DataResult.error(() -> "baby_scale (" + g.babyScale() + ") must not exceed adult_scale (" + g.adultScale() + ")"));
+                ExtraCodecs.POSITIVE_INT.fieldOf("hatch_time").forGetter(GrowthStats::hatchTime))
+                .apply(i, GrowthStats::new)).validate(g -> g.babyScale() <= g.adultScale()
+                        ? DataResult.success(g)
+                        : DataResult.error(() -> "baby_scale (" + g.babyScale() + ") must not exceed adult_scale ("
+                                + g.adultScale() + ")"));
     }
 
     public record HungerStats(int maxHunger, int hungryThreshold, int hungerDecayRate, float tameChance) {
         public static final HungerStats DEFAULT = new HungerStats(100, 80, 200, 0.33f);
         public static final Codec<HungerStats> CODEC = RecordCodecBuilder.<HungerStats>create(i -> i.group(
                 ExtraCodecs.POSITIVE_INT.optionalFieldOf("max_hunger", 100).forGetter(HungerStats::maxHunger),
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hungry_threshold", 80).forGetter(HungerStats::hungryThreshold),
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hungry_threshold", 80)
+                        .forGetter(HungerStats::hungryThreshold),
                 // 0 disables hunger decay entirely
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hunger_decay_rate", 200).forGetter(HungerStats::hungerDecayRate),
-                UNIT_FLOAT.optionalFieldOf("tame_chance", 0.33f).forGetter(HungerStats::tameChance)
-        ).apply(i, HungerStats::new)).validate(h -> h.hungryThreshold() <= h.maxHunger()
-                ? DataResult.success(h)
-                : DataResult.error(() -> "hungry_threshold (" + h.hungryThreshold() + ") must not exceed max_hunger (" + h.maxHunger() + ")"));
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("hunger_decay_rate", 200)
+                        .forGetter(HungerStats::hungerDecayRate),
+                UNIT_FLOAT.optionalFieldOf("tame_chance", 0.33f).forGetter(HungerStats::tameChance))
+                .apply(i, HungerStats::new)).validate(h -> h.hungryThreshold() <= h.maxHunger()
+                        ? DataResult.success(h)
+                        : DataResult.error(() -> "hungry_threshold (" + h.hungryThreshold()
+                                + ") must not exceed max_hunger (" + h.maxHunger() + ")"));
     }
 
     public record FoodStats(
@@ -131,10 +136,11 @@ public record Dinosaur(
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("meat_nutrition").forGetter(FoodStats::meatNutrition),
                 ExtraCodecs.NON_NEGATIVE_FLOAT.fieldOf("meat_saturation").forGetter(FoodStats::meatSaturation),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("cooked_meat_nutrition").forGetter(FoodStats::cookedMeatNutrition),
-                ExtraCodecs.NON_NEGATIVE_FLOAT.fieldOf("cooked_meat_saturation").forGetter(FoodStats::cookedMeatSaturation),
+                ExtraCodecs.NON_NEGATIVE_FLOAT.fieldOf("cooked_meat_saturation")
+                        .forGetter(FoodStats::cookedMeatSaturation),
                 // Drops 1..meat_drop_count meat; 0 disables the drop
-                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("meat_drop_count").forGetter(FoodStats::meatDropCount)
-        ).apply(i, FoodStats::new));
+                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("meat_drop_count").forGetter(FoodStats::meatDropCount))
+                .apply(i, FoodStats::new));
     }
 
     /**
@@ -148,7 +154,7 @@ public record Dinosaur(
                 Codec.STRING.optionalFieldOf("idle", DEFAULT.idle()).forGetter(Animations::idle),
                 Codec.STRING.optionalFieldOf("attack", DEFAULT.attack()).forGetter(Animations::attack),
                 Codec.STRING.optionalFieldOf("eat", DEFAULT.eat()).forGetter(Animations::eat),
-                Codec.STRING.listOf().optionalFieldOf("special", List.of()).forGetter(Animations::special)
-        ).apply(i, Animations::new));
+                Codec.STRING.listOf().optionalFieldOf("special", List.of()).forGetter(Animations::special))
+                .apply(i, Animations::new));
     }
 }

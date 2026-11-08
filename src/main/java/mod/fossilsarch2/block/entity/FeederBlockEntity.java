@@ -3,19 +3,19 @@ package mod.fossilsarch2.block.entity;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import mod.fossilsarch2.registry.ModItemTags;
 import mod.fossilsarch2.screen.FeederScreenHandler;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -49,11 +49,16 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
             switch (index) {
                 case 0 -> meatLevel = value;
                 case 1 -> vegLevel = value;
+                default -> {
+                    // index 2 (capacity) is a constant and not settable
+                }
             }
         }
 
         @Override
-        public int getCount() { return 3; }
+        public int getCount() {
+            return 3;
+        }
     };
 
     public FeederBlockEntity(BlockPos pos, BlockState state) {
@@ -61,19 +66,45 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
     }
 
     // --- Inventory ---
-    @Override public int getContainerSize() { return INVENTORY_SIZE; }
-    @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
-    @Override public ItemStack getItem(int slot) { return items.get(slot); }
-    @Override public ItemStack removeItem(int slot, int amount) {
+    @Override
+    public int getContainerSize() {
+        return INVENTORY_SIZE;
+    }
+    @Override
+    public boolean isEmpty() {
+        return items.stream().allMatch(ItemStack::isEmpty);
+    }
+    @Override
+    public ItemStack getItem(int slot) {
+        return items.get(slot);
+    }
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
         ItemStack result = ContainerHelper.removeItem(items, slot, amount);
         if (!result.isEmpty()) setChanged();
         return result;
     }
-    @Override public ItemStack removeItemNoUpdate(int slot) { return ContainerHelper.takeItem(items, slot); }
-    @Override public void setItem(int slot, ItemStack stack) { items.set(slot, stack); setChanged(); }
-    @Override public boolean canPlaceItem(int slot, ItemStack stack) { return acceptsItem(slot, stack); }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
-    @Override public void clearContent() { items.clear(); }
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        return ContainerHelper.takeItem(items, slot);
+    }
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        items.set(slot, stack);
+        setChanged();
+    }
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return acceptsItem(slot, stack);
+    }
+    @Override
+    public boolean stillValid(Player player) {
+        return Container.stillValidBlockEntity(this, player);
+    }
+    @Override
+    public void clearContent() {
+        items.clear();
+    }
 
     // --- NBT ---
     @Override
@@ -131,8 +162,12 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
 
     // --- Feeding API for dinosaurs ---
 
-    public boolean hasMeat() { return meatLevel > 0; }
-    public boolean hasVeg() { return vegLevel > 0; }
+    public boolean hasMeat() {
+        return meatLevel > 0;
+    }
+    public boolean hasVeg() {
+        return vegLevel > 0;
+    }
 
     public int consumeMeat(int amount) {
         int consumed = Math.min(amount, meatLevel);
@@ -148,8 +183,12 @@ public class FeederBlockEntity extends BlockEntity implements MenuProvider, Cont
         return consumed;
     }
 
-    public int getMeatLevel() { return meatLevel; }
-    public int getVegLevel() { return vegLevel; }
+    public int getMeatLevel() {
+        return meatLevel;
+    }
+    public int getVegLevel() {
+        return vegLevel;
+    }
 
     public static boolean acceptsItem(int slot, ItemStack stack) {
         if (stack.isEmpty()) return false;

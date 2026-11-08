@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-
 import mod.fossilsarch2.block.entity.CultivatorBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -13,7 +12,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,8 +35,14 @@ public class CultivatorBlock extends BaseEntityBlock {
         builder.add(LIT);
     }
 
-    @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new CultivatorBlockEntity(pos, state); }
-    @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new CultivatorBlockEntity(pos, state);
+    }
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,

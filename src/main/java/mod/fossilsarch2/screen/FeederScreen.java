@@ -4,9 +4,9 @@ import mod.fossilsarch2.FossilsArch2Mod;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Inventory;
 
 public class FeederScreen extends AbstractContainerScreen<FeederScreenHandler> {
     private static final int BAR_HEIGHT = 46;
@@ -18,8 +18,8 @@ public class FeederScreen extends AbstractContainerScreen<FeederScreenHandler> {
     private static final int VEG_LABEL_X = 120;
     private static final int FOOD_LABEL_Y = 32;
 
-    private static final Identifier TEXTURE =
-            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "textures/gui/feeder.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID,
+            "textures/gui/feeder.png");
 
     public FeederScreen(FeederScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title);

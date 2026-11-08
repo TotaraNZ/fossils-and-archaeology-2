@@ -16,12 +16,12 @@ import net.neoforged.neoforge.registries.NewDatapackRegistryEvent;
  */
 public final class Dinosaurs {
 
-	public static final ResourceKey<Registry<Dinosaur>> REGISTRY_KEY = ResourceKey.createRegistryKey(
-			Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dinosaurs"));
+    public static final ResourceKey<Registry<Dinosaur>> REGISTRY_KEY = ResourceKey.createRegistryKey(
+            Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "dinosaurs"));
 
-	public static void onNewRegistry(NewDatapackRegistryEvent event) {
-		event.worldRegistry(REGISTRY_KEY, Dinosaur.CODEC, Dinosaur.CODEC);
-	}
+    public static void onNewRegistry(NewDatapackRegistryEvent event) {
+        event.worldRegistry(REGISTRY_KEY, Dinosaur.CODEC, Dinosaur.CODEC);
+    }
 
-	private Dinosaurs() {}
+    private Dinosaurs() {}
 }

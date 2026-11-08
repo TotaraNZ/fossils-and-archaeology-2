@@ -1,16 +1,40 @@
 package mod.fossilsarch2.entity;
 
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.util.GeckoLibUtil;
 import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.dinosaur.Dinosaur;
+import mod.fossilsarch2.dinosaur.DinosaurUtils;
 import mod.fossilsarch2.entity.ai.DinoDefensiveMeleeGoal;
 import mod.fossilsarch2.entity.ai.DinoEatFernGoal;
 import mod.fossilsarch2.entity.ai.DinoUseFeederGoal;
-import mod.fossilsarch2.dinosaur.DinosaurUtils;
 import mod.fossilsarch2.registry.ModItemTags;
 import mod.fossilsarch2.registry.ModItems;
-import org.jspecify.annotations.Nullable;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
@@ -20,42 +44,18 @@ import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.AgeableMob;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.Identifier;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.Level;
-import com.geckolib.animatable.GeoEntity;
-import com.geckolib.animatable.instance.AnimatableInstanceCache;
-import com.geckolib.animatable.manager.AnimatableManager;
-import com.geckolib.animation.AnimationController;
-import com.geckolib.animation.state.AnimationTest;
-import com.geckolib.animation.object.PlayState;
-import com.geckolib.animation.RawAnimation;
-import com.geckolib.util.GeckoLibUtil;
+import org.jspecify.annotations.Nullable;
 
 public class DinosaurEntity extends TamableAnimal implements GeoEntity {
 
@@ -328,7 +328,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         double currentMaxHealth = Math.max(1.0, getMaxHealth());
         double healthFraction = getHealth() / currentMaxHealth;
         setBaseAttribute(Attributes.MAX_HEALTH, dino.combat().health() * DinosaurCombat.getHealthScaleFactor(this));
-        setBaseAttribute(Attributes.ATTACK_DAMAGE, dino.combat().attackDamage() * DinosaurCombat.getAttackScaleFactor(this));
+        setBaseAttribute(Attributes.ATTACK_DAMAGE,
+                dino.combat().attackDamage() * DinosaurCombat.getAttackScaleFactor(this));
         setBaseAttribute(Attributes.KNOCKBACK_RESISTANCE, DinosaurCombat.getKnockbackResistanceForGrowth(this));
 
         float scaledMaxHealth = (float) Math.max(1.0, getAttributeValue(Attributes.MAX_HEALTH));
@@ -336,7 +337,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
         setHealth(scaledHealth);
     }
 
-    private void setBaseAttribute(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
+    private void setBaseAttribute(
+            net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
             double value) {
         AttributeInstance instance = getAttribute(attribute);
         if (instance != null) {
@@ -432,7 +434,8 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
                 || (dino.diet().eatsMeat() && stack.is(ModItemTags.DINO_MEAT));
     }
 
-    private static void consumeHeldItemAndGiveRemainder(Player player, InteractionHand hand, ItemStack heldStack, ItemStack remainder) {
+    private static void consumeHeldItemAndGiveRemainder(Player player, InteractionHand hand, ItemStack heldStack,
+            ItemStack remainder) {
         heldStack.shrink(1);
         if (heldStack.isEmpty()) {
             player.setItemInHand(hand, remainder);
@@ -570,8 +573,7 @@ public class DinosaurEntity extends TamableAnimal implements GeoEntity {
     @Override
     public void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        int savedVersion = input.getIntOr("FA2DataVersion", 0);
-        // if (savedVersion < 2) { ... }
+        // Migrations go here, keyed on input.getIntOr("FA2DataVersion", 0) < CURRENT_DATA_VERSION.
 
         setDinoAge(input.getIntOr("DinoAge", 0));
         growthTicks = input.getIntOr(GROWTH_TICKS_KEY, 0);

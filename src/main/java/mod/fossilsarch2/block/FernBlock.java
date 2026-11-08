@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-
 import mod.fossilsarch2.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -10,7 +9,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.BushBlock;
@@ -32,17 +30,16 @@ public class FernBlock extends BushBlock implements BonemealableBlock {
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
 
     private static final VoxelShape[] SHAPES = {
-            Block.box(4, 0, 4, 12, 5, 12),   // stage 0: seedling
-            Block.box(3, 0, 3, 13, 8, 13),   // stage 1: small
-            Block.box(2, 0, 2, 14, 12, 14),  // stage 2: medium
-            Block.box(1, 0, 1, 15, 16, 15),  // stage 3: full
+            Block.box(4, 0, 4, 12, 5, 12), // stage 0: seedling
+            Block.box(3, 0, 3, 13, 8, 13), // stage 1: small
+            Block.box(2, 0, 2, 14, 12, 14), // stage 2: medium
+            Block.box(1, 0, 1, 15, 16, 15), // stage 3: full
     };
 
     public FernBlock(Properties settings) {
         super(settings);
         registerDefaultState(defaultBlockState().setValue(AGE, 0));
     }
-
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -91,12 +88,14 @@ public class FernBlock extends BushBlock implements BonemealableBlock {
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
+    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state,
+            BonemealSource source) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
+    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state,
+            BonemealSource source) {
         int age = state.getValue(AGE);
         if (age < MAX_AGE) {
             world.setBlock(pos, state.setValue(AGE, age + 1), Block.UPDATE_CLIENTS);

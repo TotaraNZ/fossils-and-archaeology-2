@@ -3,10 +3,10 @@ package mod.fossilsarch2.block.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import mod.fossilsarch2.FossilsArch2Mod;
 import mod.fossilsarch2.block.AnalyserBlock;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import mod.fossilsarch2.registry.ModItems;
+import mod.fossilsarch2.screen.AnalyserScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,7 +28,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import mod.fossilsarch2.screen.AnalyserScreenHandler;
 
 public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Container {
 
@@ -69,9 +68,18 @@ public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Co
 
     // --- Inventory ---
 
-    @Override public int getContainerSize() { return INVENTORY_SIZE; }
-    @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
-    @Override public ItemStack getItem(int slot) { return items.get(slot); }
+    @Override
+    public int getContainerSize() {
+        return INVENTORY_SIZE;
+    }
+    @Override
+    public boolean isEmpty() {
+        return items.stream().allMatch(ItemStack::isEmpty);
+    }
+    @Override
+    public ItemStack getItem(int slot) {
+        return items.get(slot);
+    }
 
     @Override
     public ItemStack removeItem(int slot, int amount) {
@@ -96,7 +104,10 @@ public class AnalyserBlockEntity extends BlockEntity implements MenuProvider, Co
         return Container.stillValidBlockEntity(this, player);
     }
 
-    @Override public void clearContent() { items.clear(); }
+    @Override
+    public void clearContent() {
+        items.clear();
+    }
 
     // --- NBT ---
 

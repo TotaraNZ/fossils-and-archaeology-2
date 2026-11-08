@@ -31,7 +31,8 @@ public record CombatEvaluation(double bodyMass, double combatPower, boolean avoi
 
         boolean avoidAlways = entity instanceof Creeper;
         double threatModifier = fallbackThreatModifier(entity);
-        double combatPower = Math.max(MIN_POWER, bodyMass * Math.max(0.1, attackDamage) * healthFraction * threatModifier);
+        double combatPower = Math.max(MIN_POWER,
+                bodyMass * Math.max(0.1, attackDamage) * healthFraction * threatModifier);
         return new CombatEvaluation(bodyMass, combatPower, avoidAlways);
     }
 

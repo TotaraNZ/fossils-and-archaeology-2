@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-
 import mod.fossilsarch2.block.entity.SuspiciousStoneBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,7 +12,6 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -34,7 +32,6 @@ public class SuspiciousStoneBlock extends BaseEntityBlock {
         super(settings);
         registerDefaultState(defaultBlockState().setValue(DUSTED, 0));
     }
-
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

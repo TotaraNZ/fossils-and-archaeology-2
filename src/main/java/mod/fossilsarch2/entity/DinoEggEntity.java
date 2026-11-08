@@ -2,38 +2,37 @@ package mod.fossilsarch2.entity;
 
 import java.util.UUID;
 
-import mod.fossilsarch2.FossilsArch2Mod;
-import mod.fossilsarch2.dinosaur.Dinosaur;
-import mod.fossilsarch2.dinosaur.DinosaurUtils;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntitySpawnReason;
-import mod.fossilsarch2.network.ModNetworking;
-import mod.fossilsarch2.registry.ModAdvancements;
-import mod.fossilsarch2.registry.ModItems;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.BuiltInRegistries;
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.Level;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
 import com.geckolib.animation.AnimationController;
-import com.geckolib.animation.state.AnimationTest;
-import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
+import mod.fossilsarch2.dinosaur.Dinosaur;
+import mod.fossilsarch2.dinosaur.DinosaurUtils;
+import mod.fossilsarch2.network.ModNetworking;
+import mod.fossilsarch2.registry.ModAdvancements;
+import mod.fossilsarch2.registry.ModItems;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 public class DinoEggEntity extends Entity implements GeoEntity {
 
@@ -150,7 +149,8 @@ public class DinoEggEntity extends Entity implements GeoEntity {
         // Species and entity type share an ID, so addon species hatch into their own entity type.
         Identifier speciesId = getSpeciesId();
         EntityType<?> entityType = speciesId != null ? BuiltInRegistries.ENTITY_TYPE.getValue(speciesId) : null;
-        if (entityType == null || !(entityType.create(serverLevel, EntitySpawnReason.BREEDING) instanceof DinosaurEntity baby)) {
+        if (entityType == null
+                || !(entityType.create(serverLevel, EntitySpawnReason.BREEDING) instanceof DinosaurEntity baby)) {
             discard();
             return;
         }
@@ -186,14 +186,16 @@ public class DinoEggEntity extends Entity implements GeoEntity {
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-        int savedVersion = input.getIntOr("FA2DataVersion", 0);
-        // if (savedVersion < 2) { ... }
+        // Migrations go here, keyed on input.getIntOr("FA2DataVersion", 0) < CURRENT_DATA_VERSION.
 
         // Pre-namespace saves stored a bare path ("triceratops"); parseSpeciesId defaults the namespace.
         entityData.set(DINO_ID, input.getStringOr("DinoId", ""));
         setHatchProgress(input.getIntOr("HatchProgress", 0));
         input.getString("OwnerUUID").ifPresent(s -> {
-            try { ownerUuid = UUID.fromString(s); } catch (IllegalArgumentException ignored) {}
+            try {
+                ownerUuid = UUID.fromString(s);
+            } catch (IllegalArgumentException ignored) {
+            }
         });
     }
 

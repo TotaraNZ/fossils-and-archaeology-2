@@ -28,6 +28,8 @@
     },
     "animations": {
         "attack": "eat",
-        "special": ["look"]
+        "special": [
+            "look"
+        ]
     }
 }

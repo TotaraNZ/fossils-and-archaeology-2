@@ -2,15 +2,15 @@ package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.block.entity.FeederBlockEntity;
 import mod.fossilsarch2.registry.ModScreenHandlers;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 public class FeederScreenHandler extends AbstractContainerMenu {
 
@@ -18,11 +18,12 @@ public class FeederScreenHandler extends AbstractContainerMenu {
     private final ContainerData propertyDelegate;
 
     public FeederScreenHandler(int syncId, Inventory playerInventory) {
-        this(syncId, playerInventory, new SimpleContainer(FeederBlockEntity.INVENTORY_SIZE), new SimpleContainerData(3));
+        this(syncId, playerInventory, new SimpleContainer(FeederBlockEntity.INVENTORY_SIZE),
+                new SimpleContainerData(3));
     }
 
     public FeederScreenHandler(int syncId, Inventory playerInventory,
-                                Container inventory, ContainerData propertyDelegate) {
+            Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.FEEDER.get(), syncId);
         checkContainerSize(inventory, FeederBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
@@ -55,9 +56,16 @@ public class FeederScreenHandler extends AbstractContainerMenu {
         this.addDataSlots(propertyDelegate);
     }
 
-    public int getMeatLevel() { return propertyDelegate.get(0); }
-    public int getVegLevel() { return propertyDelegate.get(1); }
-    public int getMaxFood() { int m = propertyDelegate.get(2); return m > 0 ? m : 1; }
+    public int getMeatLevel() {
+        return propertyDelegate.get(0);
+    }
+    public int getVegLevel() {
+        return propertyDelegate.get(1);
+    }
+    public int getMaxFood() {
+        int m = propertyDelegate.get(2);
+        return m > 0 ? m : 1;
+    }
 
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
@@ -70,11 +78,13 @@ public class FeederScreenHandler extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(original, 2, 38, true)) return ItemStack.EMPTY;
             } else {
                 if (FeederBlockEntity.acceptsItem(FeederBlockEntity.MEAT_SLOT, original)) {
-                    if (!this.moveItemStackTo(original, FeederBlockEntity.MEAT_SLOT, FeederBlockEntity.MEAT_SLOT + 1, false)) {
+                    if (!this.moveItemStackTo(original, FeederBlockEntity.MEAT_SLOT, FeederBlockEntity.MEAT_SLOT + 1,
+                            false)) {
                         return ItemStack.EMPTY;
                     }
                 } else if (FeederBlockEntity.acceptsItem(FeederBlockEntity.VEG_SLOT, original)) {
-                    if (!this.moveItemStackTo(original, FeederBlockEntity.VEG_SLOT, FeederBlockEntity.VEG_SLOT + 1, false)) {
+                    if (!this.moveItemStackTo(original, FeederBlockEntity.VEG_SLOT, FeederBlockEntity.VEG_SLOT + 1,
+                            false)) {
                         return ItemStack.EMPTY;
                     }
                 } else if (slotIndex < 29) {
@@ -86,11 +96,14 @@ public class FeederScreenHandler extends AbstractContainerMenu {
                 }
             }
             if (original.isEmpty()) slot.setByPlayer(ItemStack.EMPTY);
-            else slot.setChanged();
+            else
+                slot.setChanged();
         }
         return newStack;
     }
 
     @Override
-    public boolean stillValid(Player player) { return this.inventory.stillValid(player); }
+    public boolean stillValid(Player player) {
+        return this.inventory.stillValid(player);
+    }
 }

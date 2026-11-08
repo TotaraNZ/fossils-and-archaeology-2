@@ -92,7 +92,8 @@ public final class DinosaurCombat {
         Dinosaur data = dinosaur.getDinosaur();
         if (data == null || target == null || !target.isAlive()) return false;
         if (isFriendlyOrInvalidTarget(dinosaur, target)) return false;
-        if (isDefensivelyMature(dinosaur) && (dinosaur.getTarget() == target || dinosaur.getLastHurtByMob() == target)) {
+        if (isDefensivelyMature(dinosaur)
+                && (dinosaur.getTarget() == target || dinosaur.getLastHurtByMob() == target)) {
             return false;
         }
         if (shouldHunt(dinosaur, target)) return false;

@@ -16,22 +16,22 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  */
 public final class ModSounds {
 
-	private static final DeferredRegister<SoundEvent> SOUND_EVENTS =
-			DeferredRegister.create(Registries.SOUND_EVENT, FossilsArch2Mod.MOD_ID);
+    private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT,
+            FossilsArch2Mod.MOD_ID);
 
-	public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
-		for (String id : dinosaurs.keySet()) {
-			registerSound(id + ".ambient");
-			registerSound(id + ".hurt");
-			registerSound(id + ".death");
-		}
-		SOUND_EVENTS.register(modEventBus);
-	}
+    public static void register(IEventBus modEventBus, Map<String, Dinosaur> dinosaurs) {
+        for (String id : dinosaurs.keySet()) {
+            registerSound(id + ".ambient");
+            registerSound(id + ".hurt");
+            registerSound(id + ".death");
+        }
+        SOUND_EVENTS.register(modEventBus);
+    }
 
-	private static void registerSound(String path) {
-		Identifier id = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path);
-		SOUND_EVENTS.register(path, () -> SoundEvent.createVariableRangeEvent(id));
-	}
+    private static void registerSound(String path) {
+        Identifier id = Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, path);
+        SOUND_EVENTS.register(path, () -> SoundEvent.createVariableRangeEvent(id));
+    }
 
-	private ModSounds() {}
+    private ModSounds() {}
 }

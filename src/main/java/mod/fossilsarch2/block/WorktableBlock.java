@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-
 import mod.fossilsarch2.block.entity.WorktableBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -15,7 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -36,7 +34,6 @@ public class WorktableBlock extends BaseEntityBlock {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
-
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, LIT);
@@ -49,11 +46,18 @@ public class WorktableBlock extends BaseEntityBlock {
                 .setValue(LIT, false);
     }
 
-    @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new WorktableBlockEntity(pos, state); }
-    @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new WorktableBlockEntity(pos, state);
+    }
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+            BlockHitResult hit) {
         if (!world.isClientSide()) {
             MenuProvider factory = state.getMenuProvider(world, pos);
             if (factory != null) player.openMenu(factory);
@@ -62,7 +66,8 @@ public class WorktableBlock extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state,
+            BlockEntityType<T> type) {
         return createTickerHelper(type, ModBlockEntities.WORKTABLE.get(), WorktableBlockEntity::tick);
     }
 

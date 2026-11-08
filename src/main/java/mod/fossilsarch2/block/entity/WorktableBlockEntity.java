@@ -1,5 +1,9 @@
 package mod.fossilsarch2.block.entity;
 
+import java.util.Map;
+import java.util.function.Supplier;
+
+import com.google.common.base.Suppliers;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import mod.fossilsarch2.registry.ModItems;
 import mod.fossilsarch2.screen.WorktableScreenHandler;
@@ -15,17 +19,12 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-
-import com.google.common.base.Suppliers;
-import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * Worktable repairs broken ancient artifacts using relics as fuel.
@@ -43,8 +42,7 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
     // Memoized so the DeferredItem.get() calls run after registry freeze, then never again.
     private static final Supplier<Map<Item, Item>> RECIPES = Suppliers.memoize(() -> Map.of(
             ModItems.BROKEN_SWORD.get(), ModItems.ANCIENT_SWORD.get(),
-            ModItems.BROKEN_HELMET.get(), ModItems.ANCIENT_HELMET.get()
-    ));
+            ModItems.BROKEN_HELMET.get(), ModItems.ANCIENT_HELMET.get()));
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private int cookTime = 0;
@@ -69,11 +67,16 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
                 case 0 -> cookTime = value;
                 case 2 -> burnTime = value;
                 case 3 -> currentItemBurnTime = value;
+                default -> {
+                    // index 1 (max cook time) is a constant and not settable
+                }
             }
         }
 
         @Override
-        public int getCount() { return 4; }
+        public int getCount() {
+            return 4;
+        }
     };
 
     public WorktableBlockEntity(BlockPos pos, BlockState state) {
@@ -81,18 +84,41 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
     }
 
     // --- Inventory ---
-    @Override public int getContainerSize() { return INVENTORY_SIZE; }
-    @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
-    @Override public ItemStack getItem(int slot) { return items.get(slot); }
-    @Override public ItemStack removeItem(int slot, int amount) {
+    @Override
+    public int getContainerSize() {
+        return INVENTORY_SIZE;
+    }
+    @Override
+    public boolean isEmpty() {
+        return items.stream().allMatch(ItemStack::isEmpty);
+    }
+    @Override
+    public ItemStack getItem(int slot) {
+        return items.get(slot);
+    }
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
         ItemStack result = ContainerHelper.removeItem(items, slot, amount);
         if (!result.isEmpty()) setChanged();
         return result;
     }
-    @Override public ItemStack removeItemNoUpdate(int slot) { return ContainerHelper.takeItem(items, slot); }
-    @Override public void setItem(int slot, ItemStack stack) { items.set(slot, stack); setChanged(); }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
-    @Override public void clearContent() { items.clear(); }
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        return ContainerHelper.takeItem(items, slot);
+    }
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        items.set(slot, stack);
+        setChanged();
+    }
+    @Override
+    public boolean stillValid(Player player) {
+        return Container.stillValidBlockEntity(this, player);
+    }
+    @Override
+    public void clearContent() {
+        items.clear();
+    }
 
     // --- NBT ---
     @Override
@@ -115,7 +141,9 @@ public class WorktableBlockEntity extends BlockEntity implements MenuProvider, C
 
     // --- Screen ---
     @Override
-    public Component getDisplayName() { return Component.translatable("block.fossilsarch2.worktable"); }
+    public Component getDisplayName() {
+        return Component.translatable("block.fossilsarch2.worktable");
+    }
 
     @Override
     public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {

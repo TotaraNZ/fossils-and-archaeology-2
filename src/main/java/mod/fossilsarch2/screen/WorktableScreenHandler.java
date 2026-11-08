@@ -2,15 +2,15 @@ package mod.fossilsarch2.screen;
 
 import mod.fossilsarch2.block.entity.WorktableBlockEntity;
 import mod.fossilsarch2.registry.ModScreenHandlers;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 public class WorktableScreenHandler extends AbstractContainerMenu {
 
@@ -18,11 +18,12 @@ public class WorktableScreenHandler extends AbstractContainerMenu {
     private final ContainerData propertyDelegate;
 
     public WorktableScreenHandler(int syncId, Inventory playerInventory) {
-        this(syncId, playerInventory, new SimpleContainer(WorktableBlockEntity.INVENTORY_SIZE), new SimpleContainerData(4));
+        this(syncId, playerInventory, new SimpleContainer(WorktableBlockEntity.INVENTORY_SIZE),
+                new SimpleContainerData(4));
     }
 
     public WorktableScreenHandler(int syncId, Inventory playerInventory,
-                                   Container inventory, ContainerData propertyDelegate) {
+            Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.WORKTABLE.get(), syncId);
         checkContainerSize(inventory, WorktableBlockEntity.INVENTORY_SIZE);
         this.inventory = inventory;
@@ -47,7 +48,9 @@ public class WorktableScreenHandler extends AbstractContainerMenu {
         return max > 0 ? (float) propertyDelegate.get(0) / max : 0;
     }
 
-    public boolean isBurning() { return propertyDelegate.get(2) > 0; }
+    public boolean isBurning() {
+        return propertyDelegate.get(2) > 0;
+    }
 
     public float getBurnTimeRatio() {
         int max = propertyDelegate.get(3);
@@ -68,11 +71,14 @@ public class WorktableScreenHandler extends AbstractContainerMenu {
                     if (!this.moveItemStackTo(original, 1, 2, false)) return ItemStack.EMPTY;
             }
             if (original.isEmpty()) slot.setByPlayer(ItemStack.EMPTY);
-            else slot.setChanged();
+            else
+                slot.setChanged();
         }
         return newStack;
     }
 
     @Override
-    public boolean stillValid(Player player) { return this.inventory.stillValid(player); }
+    public boolean stillValid(Player player) {
+        return this.inventory.stillValid(player);
+    }
 }

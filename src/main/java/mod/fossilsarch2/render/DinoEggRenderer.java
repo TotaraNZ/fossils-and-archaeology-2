@@ -1,16 +1,17 @@
 package mod.fossilsarch2.render;
 
+import com.geckolib.renderer.GeoEntityRenderer;
+import com.geckolib.renderer.base.GeoRenderState;
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.model.DinoEggModel;
 import mod.fossilsarch2.model.ModRenderData;
 import net.minecraft.client.renderer.entity.EntityRendererProvider.Context;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.resources.Identifier;
-import com.geckolib.renderer.GeoEntityRenderer;
-import com.geckolib.renderer.base.GeoRenderState;
 
 public class DinoEggRenderer<R extends EntityRenderState & GeoRenderState>
-        extends GeoEntityRenderer<DinoEggEntity, R> {
+        extends
+            GeoEntityRenderer<DinoEggEntity, R> {
 
     public DinoEggRenderer(Context ctx) {
         super(ctx, new DinoEggModel());

@@ -20,36 +20,36 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  */
 public final class ModItemGroups {
 
-	private static final DeferredRegister<CreativeModeTab> TABS =
-			DeferredRegister.create(Registries.CREATIVE_MODE_TAB, FossilsArch2Mod.MOD_ID);
+    private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB,
+            FossilsArch2Mod.MOD_ID);
 
-	public static final DeferredHolder<CreativeModeTab, CreativeModeTab> FA2 = TABS.register("fossilsarch2",
-			() -> CreativeModeTab.builder()
-					.icon(() -> new ItemStack(ModItems.SCARAB_GEM.get()))
-					.title(Component.translatable("itemGroup.fossilsarch2"))
-					.displayItems((context, entries) -> {
-						Set<Item> added = new HashSet<>();
-						BuiltInRegistries.BLOCK.forEach(block -> {
-							Identifier id = BuiltInRegistries.BLOCK.getKey(block);
-							if (id.getNamespace().equals(FossilsArch2Mod.MOD_ID)) {
-								Item blockItem = block.asItem();
-								if (blockItem != null && added.add(blockItem)) {
-									entries.accept(blockItem);
-								}
-							}
-						});
-						BuiltInRegistries.ITEM.forEach(item -> {
-							Identifier id = BuiltInRegistries.ITEM.getKey(item);
-							if (id.getNamespace().equals(FossilsArch2Mod.MOD_ID) && added.add(item)) {
-								entries.accept(item);
-							}
-						});
-					})
-					.build());
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> FA2 = TABS.register("fossilsarch2",
+            () -> CreativeModeTab.builder()
+                    .icon(() -> new ItemStack(ModItems.SCARAB_GEM.get()))
+                    .title(Component.translatable("itemGroup.fossilsarch2"))
+                    .displayItems((context, entries) -> {
+                        Set<Item> added = new HashSet<>();
+                        BuiltInRegistries.BLOCK.forEach(block -> {
+                            Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+                            if (id.getNamespace().equals(FossilsArch2Mod.MOD_ID)) {
+                                Item blockItem = block.asItem();
+                                if (blockItem != null && added.add(blockItem)) {
+                                    entries.accept(blockItem);
+                                }
+                            }
+                        });
+                        BuiltInRegistries.ITEM.forEach(item -> {
+                            Identifier id = BuiltInRegistries.ITEM.getKey(item);
+                            if (id.getNamespace().equals(FossilsArch2Mod.MOD_ID) && added.add(item)) {
+                                entries.accept(item);
+                            }
+                        });
+                    })
+                    .build());
 
-	public static void register(IEventBus modEventBus) {
-		TABS.register(modEventBus);
-	}
+    public static void register(IEventBus modEventBus) {
+        TABS.register(modEventBus);
+    }
 
-	private ModItemGroups() {}
+    private ModItemGroups() {}
 }

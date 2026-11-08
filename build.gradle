@@ -2,6 +2,8 @@ plugins {
 	id 'net.neoforged.moddev' version '2.0.148'
 	id 'maven-publish'
 	id 'me.qoomon.git-versioning' version '6.4.4'
+	id 'com.diffplug.spotless' version '8.11.0'
+	id 'checkstyle'
 }
 
 version = project.version
@@ -128,7 +130,45 @@ tasks.register("checkGeneratedData") {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
-	it.options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
+	// Deprecations and unchecked conversions fail the build so they're fixed when introduced.
+	it.options.compilerArgs += [
+		'-Xlint:deprecation',
+		'-Xlint:removal',
+		'-Xlint:unchecked',
+		'-Werror'
+	]
+}
+
+// --- Linting ---
+// Formatting: ./gradlew spotlessApply (VS Code uses the same Eclipse profile on save).
+// Checks:     ./gradlew check  (spotlessCheck + checkstyle + gametests)
+spotless {
+	java {
+		target 'src/**/*.java'
+		eclipse().configFile('config/eclipse-formatter.xml')
+		importOrder('java', 'javax', '', '\\#')
+		removeUnusedImports()
+		forbidWildcardImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+	json {
+		target 'src/main/resources/**/*.json'
+		// Lang files use blank lines to group keys, which a JSON formatter would strip.
+		targetExclude 'src/main/resources/assets/**/geckolib/**', 'src/main/resources/assets/**/lang/**'
+		gson().indentWithSpaces(4)
+	}
+	groovyGradle {
+		target '*.gradle'
+		greclipse()
+		leadingSpacesToTabs(4)
+	}
+}
+
+checkstyle {
+	toolVersion = '14.4.0'
+	configFile = file('config/checkstyle/checkstyle.xml')
+	maxWarnings = 0
 }
 
 java {

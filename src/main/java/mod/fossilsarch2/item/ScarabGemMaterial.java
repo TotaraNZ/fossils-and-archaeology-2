@@ -1,11 +1,11 @@
 package mod.fossilsarch2.item;
 
 import mod.fossilsarch2.FossilsArch2Mod;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.tags.TagKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.ToolMaterial;
 
 /**
  * Scarab gem tool material -- diamond-tier harvest level with enhanced durability and enchantability.
@@ -14,13 +14,12 @@ import net.minecraft.resources.Identifier;
 public final class ScarabGemMaterial {
 
     public static final ToolMaterial SCARAB_GEM = new ToolMaterial(
-            BlockTags.INCORRECT_FOR_DIAMOND_TOOL,   // same harvest level as diamond
-            1861,                                     // durability (diamond=1561)
-            8.0F,                                     // mining speed (diamond=8.0)
-            4.0F,                                     // attack damage bonus (diamond=3.0)
-            25,                                       // enchantability (diamond=10)
-            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "scarab_gems"))
-    );
+            BlockTags.INCORRECT_FOR_DIAMOND_TOOL, // same harvest level as diamond
+            1861, // durability (diamond=1561)
+            8.0F, // mining speed (diamond=8.0)
+            4.0F, // attack damage bonus (diamond=3.0)
+            25, // enchantability (diamond=10)
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(FossilsArch2Mod.MOD_ID, "scarab_gems")));
 
     private ScarabGemMaterial() {}
 }

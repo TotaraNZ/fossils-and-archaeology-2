@@ -1,5 +1,7 @@
 {
     "variants": {
-        "": { "model": "fossilsarch2:block/feeder" }
+        "": {
+            "model": "fossilsarch2:block/feeder"
+        }
     }
 }

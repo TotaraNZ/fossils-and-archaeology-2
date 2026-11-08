@@ -1,20 +1,17 @@
 package mod.fossilsarch2.item;
 
 import mod.fossilsarch2.dinosaur.DinosaurUtils;
-
 import mod.fossilsarch2.entity.DinoEggEntity;
 import mod.fossilsarch2.registry.ModEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-
 
 public class DinoEggItem extends Item {
 

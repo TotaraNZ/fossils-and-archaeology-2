@@ -1,6 +1,5 @@
 package mod.fossilsarch2.block;
 
-
 import mod.fossilsarch2.block.entity.AnalyserBlockEntity;
 import mod.fossilsarch2.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -15,7 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -42,7 +40,6 @@ public class AnalyserBlock extends BaseEntityBlock {
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, LIT);
     }
-
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
@@ -86,7 +83,8 @@ public class AnalyserBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state,
             BlockEntityType<T> type) {
-        return world.isClientSide() ? null
+        return world.isClientSide()
+                ? null
                 : createTickerHelper(type, ModBlockEntities.ANALYSER.get(), AnalyserBlockEntity::tick);
     }
 }

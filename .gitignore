@@ -13,8 +13,10 @@ src/generated/server/.cache/
 src/generated/client/data/
 .apt_generated/
 
-# IDE
-.vscode/
+# IDE (shared VS Code settings are committed)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.iml
 
