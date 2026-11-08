@@ -1,0 +1,37 @@
+{
+    "display_name": "Pterosaur",
+    "diet": "carnivore",
+    "combat": {
+        "health": 16.0,
+        "speed": 0.26,
+        "attack_damage": 3.0,
+        "combat_modifier": 0.9,
+        "confidence": 0.9,
+        "min_hunt_progress": 0.6,
+        "player_aggression_progress": 1.0,
+        "prey_ratio_max": 0.7,
+        "fear_ratio": 1.2
+    },
+    "growth": {
+        "width": 0.9,
+        "height": 0.9,
+        "baby_scale": 0.4,
+        "adult_scale": 1.2,
+        "max_age": 8,
+        "grow_time": 9000,
+        "hatch_time": 2400
+    },
+    "food": {
+        "meat_nutrition": 2,
+        "meat_saturation": 0.2,
+        "cooked_meat_nutrition": 5,
+        "cooked_meat_saturation": 0.5,
+        "meat_drop_count": 2
+    },
+    "animations": {
+        "eat": "",
+        "special": [
+            "flap"
+        ]
+    }
+}

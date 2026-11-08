@@ -1,0 +1,38 @@
+{
+    "display_name": "Velociraptor",
+    "diet": "carnivore",
+    "combat": {
+        "health": 22.0,
+        "speed": 0.33,
+        "attack_damage": 5.0,
+        "combat_modifier": 1.3,
+        "confidence": 1.3,
+        "chase_speed": 1.6,
+        "min_hunt_progress": 0.45,
+        "player_aggression_progress": 0.75,
+        "prey_ratio_max": 0.9,
+        "fear_ratio": 1.3
+    },
+    "growth": {
+        "width": 0.8,
+        "height": 1.3,
+        "baby_scale": 0.35,
+        "adult_scale": 1.0,
+        "max_age": 8,
+        "grow_time": 9000,
+        "hatch_time": 2400
+    },
+    "food": {
+        "meat_nutrition": 3,
+        "meat_saturation": 0.3,
+        "cooked_meat_nutrition": 6,
+        "cooked_meat_saturation": 0.6,
+        "meat_drop_count": 2
+    },
+    "animations": {
+        "eat": "",
+        "special": [
+            "roar"
+        ]
+    }
+}

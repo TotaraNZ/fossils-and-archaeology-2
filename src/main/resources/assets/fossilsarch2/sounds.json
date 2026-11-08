@@ -10,21 +10,24 @@
             {
                 "name": "fossilsarch2:triceratops_living3"
             }
-        ]
+        ],
+        "subtitle": "subtitles.fossilsarch2.triceratops.ambient"
     },
     "triceratops.hurt": {
         "sounds": [
             {
                 "name": "fossilsarch2:triceratops_hurt"
             }
-        ]
+        ],
+        "subtitle": "subtitles.fossilsarch2.triceratops.hurt"
     },
     "triceratops.death": {
         "sounds": [
             {
                 "name": "fossilsarch2:triceratops_death"
             }
-        ]
+        ],
+        "subtitle": "subtitles.fossilsarch2.triceratops.death"
     },
     "tyrannosaurus.ambient": {
         "sounds": [
@@ -46,14 +49,16 @@
             {
                 "name": "fossilsarch2:tyrannosaurus_scream3"
             }
-        ]
+        ],
+        "subtitle": "subtitles.fossilsarch2.tyrannosaurus.ambient"
     },
     "tyrannosaurus.hurt": {
         "sounds": [
             {
                 "name": "fossilsarch2:tyrannosaurus_hurt"
             }
-        ]
+        ],
+        "subtitle": "subtitles.fossilsarch2.tyrannosaurus.hurt"
     },
     "tyrannosaurus.death": {
         "sounds": [
@@ -63,6 +68,185 @@
             {
                 "name": "fossilsarch2:tyrannosaurus_death2"
             }
-        ]
+        ],
+        "subtitle": "subtitles.fossilsarch2.tyrannosaurus.death"
+    },
+    "stegosaurus.ambient": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:triceratops_living1",
+                "pitch": 0.8
+            },
+            {
+                "name": "fossilsarch2:triceratops_living2",
+                "pitch": 0.8
+            },
+            {
+                "name": "fossilsarch2:triceratops_living3",
+                "pitch": 0.8
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.stegosaurus.ambient"
+    },
+    "stegosaurus.hurt": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:triceratops_hurt",
+                "pitch": 0.8
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.stegosaurus.hurt"
+    },
+    "stegosaurus.death": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:triceratops_death",
+                "pitch": 0.8
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.stegosaurus.death"
+    },
+    "brachiosaurus.ambient": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:triceratops_living1",
+                "pitch": 0.6
+            },
+            {
+                "name": "fossilsarch2:triceratops_living2",
+                "pitch": 0.6
+            },
+            {
+                "name": "fossilsarch2:triceratops_living3",
+                "pitch": 0.6
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.brachiosaurus.ambient"
+    },
+    "brachiosaurus.hurt": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:triceratops_hurt",
+                "pitch": 0.6
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.brachiosaurus.hurt"
+    },
+    "brachiosaurus.death": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:triceratops_death",
+                "pitch": 0.6
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.brachiosaurus.death"
+    },
+    "dilophosaurus.ambient": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:tyrannosaurus_living1",
+                "pitch": 1.3
+            },
+            {
+                "name": "fossilsarch2:tyrannosaurus_living2",
+                "pitch": 1.3
+            },
+            {
+                "name": "fossilsarch2:tyrannosaurus_living3",
+                "pitch": 1.3
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.dilophosaurus.ambient"
+    },
+    "dilophosaurus.hurt": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:tyrannosaurus_hurt",
+                "pitch": 1.3
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.dilophosaurus.hurt"
+    },
+    "dilophosaurus.death": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:tyrannosaurus_death1",
+                "pitch": 1.3
+            },
+            {
+                "name": "fossilsarch2:tyrannosaurus_death2",
+                "pitch": 1.3
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.dilophosaurus.death"
+    },
+    "velociraptor.ambient": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:tyrannosaurus_living1",
+                "pitch": 1.6
+            },
+            {
+                "name": "fossilsarch2:tyrannosaurus_living2",
+                "pitch": 1.6
+            },
+            {
+                "name": "fossilsarch2:tyrannosaurus_living3",
+                "pitch": 1.6
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.velociraptor.ambient"
+    },
+    "velociraptor.hurt": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:tyrannosaurus_hurt",
+                "pitch": 1.6
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.velociraptor.hurt"
+    },
+    "velociraptor.death": {
+        "sounds": [
+            {
+                "name": "fossilsarch2:tyrannosaurus_death1",
+                "pitch": 1.6
+            },
+            {
+                "name": "fossilsarch2:tyrannosaurus_death2",
+                "pitch": 1.6
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.velociraptor.death"
+    },
+    "pterosaur.ambient": {
+        "sounds": [
+            {
+                "name": "minecraft:entity.parrot.ambient",
+                "type": "event",
+                "pitch": 0.7
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.pterosaur.ambient"
+    },
+    "pterosaur.hurt": {
+        "sounds": [
+            {
+                "name": "minecraft:entity.parrot.hurt",
+                "type": "event",
+                "pitch": 0.7
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.pterosaur.hurt"
+    },
+    "pterosaur.death": {
+        "sounds": [
+            {
+                "name": "minecraft:entity.parrot.death",
+                "type": "event",
+                "pitch": 0.7
+            }
+        ],
+        "subtitle": "subtitles.fossilsarch2.pterosaur.death"
     }
 }

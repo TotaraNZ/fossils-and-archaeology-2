@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "fossilsarch2:velociraptor_cooked_meat_from_campfire_cooking"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_velociraptor_meat": {
+      "conditions": {
+        "items": [
+          {
+            "items": "fossilsarch2:velociraptor_meat"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_velociraptor_meat"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "fossilsarch2:velociraptor_cooked_meat_from_campfire_cooking"
+    ]
+  }
+}

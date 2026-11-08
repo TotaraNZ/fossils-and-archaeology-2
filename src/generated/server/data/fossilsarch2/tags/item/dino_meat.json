@@ -2,7 +2,17 @@
   "values": [
     "fossilsarch2:triceratops_meat",
     "fossilsarch2:triceratops_cooked_meat",
+    "fossilsarch2:brachiosaurus_meat",
+    "fossilsarch2:brachiosaurus_cooked_meat",
+    "fossilsarch2:velociraptor_meat",
+    "fossilsarch2:velociraptor_cooked_meat",
     "fossilsarch2:tyrannosaurus_meat",
-    "fossilsarch2:tyrannosaurus_cooked_meat"
+    "fossilsarch2:tyrannosaurus_cooked_meat",
+    "fossilsarch2:stegosaurus_meat",
+    "fossilsarch2:stegosaurus_cooked_meat",
+    "fossilsarch2:dilophosaurus_meat",
+    "fossilsarch2:dilophosaurus_cooked_meat",
+    "fossilsarch2:pterosaur_meat",
+    "fossilsarch2:pterosaur_cooked_meat"
   ]
 }

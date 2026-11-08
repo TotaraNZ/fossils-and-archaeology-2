@@ -8,7 +8,22 @@
             "items": "fossilsarch2:triceratops_egg"
           },
           {
+            "items": "fossilsarch2:brachiosaurus_egg"
+          },
+          {
+            "items": "fossilsarch2:velociraptor_egg"
+          },
+          {
             "items": "fossilsarch2:tyrannosaurus_egg"
+          },
+          {
+            "items": "fossilsarch2:stegosaurus_egg"
+          },
+          {
+            "items": "fossilsarch2:dilophosaurus_egg"
+          },
+          {
+            "items": "fossilsarch2:pterosaur_egg"
           }
         ]
       },

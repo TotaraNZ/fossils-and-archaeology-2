@@ -1,0 +1,35 @@
+{
+    "display_name": "Brachiosaurus",
+    "diet": "herbivore",
+    "combat": {
+        "health": 100.0,
+        "speed": 0.18,
+        "attack_damage": 10.0,
+        "combat_modifier": 1.3,
+        "confidence": 1.3,
+        "defensive_progress": 0.5,
+        "fear_ratio": 2.0
+    },
+    "growth": {
+        "width": 1.0,
+        "height": 2.0,
+        "baby_scale": 0.35,
+        "adult_scale": 2.0,
+        "max_age": 16,
+        "grow_time": 12000,
+        "hatch_time": 4000
+    },
+    "food": {
+        "meat_nutrition": 5,
+        "meat_saturation": 0.5,
+        "cooked_meat_nutrition": 10,
+        "cooked_meat_saturation": 1.0,
+        "meat_drop_count": 6
+    },
+    "animations": {
+        "attack": "stomp",
+        "special": [
+            "look"
+        ]
+    }
+}

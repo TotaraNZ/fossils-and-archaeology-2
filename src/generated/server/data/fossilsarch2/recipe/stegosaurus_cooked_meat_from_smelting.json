@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "cookingtime": 200,
+  "experience": 0.35,
+  "ingredient": "fossilsarch2:stegosaurus_meat",
+  "result": {
+    "id": "fossilsarch2:stegosaurus_cooked_meat"
+  }
+}
